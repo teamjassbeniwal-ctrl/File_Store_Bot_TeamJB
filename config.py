@@ -7,16 +7,16 @@ TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "")
 
 #Your API ID & API HASH from my.telegram.org 
 #Your API ID from my.telegram.org
-APP_ID = int(os.environ.get("APP_ID", "25331263"))
+APP_ID = int(os.environ.get("APP_ID", "31212516"))
 
 #Your API Hash from my.telegram.org
-API_HASH = os.environ.get("API_HASH", "cab85305bf85125a2ac053210bcd1030")
+API_HASH = os.environ.get("API_HASH", "ccc20df465364045538da8ecf8954992")
 
 #Your db channel Id
-CHANNEL_ID = int(os.environ.get("CHANNEL_ID", "-1003508451850"))
+CHANNEL_ID = int(os.environ.get("CHANNEL_ID", "-1001926377125"))
 
 #OWNER ID
-OWNER_ID = int(os.environ.get("OWNER_ID", "1955406483"))
+OWNER_ID = int(os.environ.get("OWNER_ID", "1091787882"))
 
 #Port
 PORT = os.environ.get("PORT", "8585")
@@ -38,7 +38,7 @@ IS_VERIFY = os.environ.get("IS_VERIFY", "True")
 TUT_VID = os.environ.get("TUT_VID", "https://t.me/+JAdctcMYdSUzZGU1") # shareus ka tut_vid he 
 
 #force sub channel id, if you want enable force sub
-FORCE_SUB_CHANNEL = int(os.environ.get("FORCE_SUB_CHANNEL", "-1002888391802"))
+FORCE_SUB_CHANNEL = int(os.environ.get("FORCE_SUB_CHANNEL", "-1001789274849"))
 
 TG_BOT_WORKERS = int(os.environ.get("TG_BOT_WORKERS", "4"))
 
