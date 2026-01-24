@@ -47,20 +47,18 @@ from database.database import (
 )
 
 # ================= CONFIG =================
-FREE_TIME = 3 * 60 * 60  # 3 HOURS FREE
+FREE_TIME = 3 * 60 * 60  # 3 HOURS
 # =========================================
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-# =========================================================
-# START COMMAND
-# =========================================================
 @Bot.on_message(filters.command("start") & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
 
     user_id = message.from_user.id
+    now = int(time.time())
 
     # ---------------- ADD USER ----------------
     if not await present_user(user_id):
@@ -68,16 +66,19 @@ async def start_command(client: Client, message: Message):
 
     verify_status = await get_verify_status(user_id)
 
-    # SAFETY DEFAULTS (NO ERROR)
-    first_start = verify_status.get("first_start", int(time.time()))
+    # ---------------- FIRST START SAVE ----------------
+    if "first_start" not in verify_status:
+        await update_verify_status(user_id, first_start=now)
+        verify_status["first_start"] = now
+
+    first_start = verify_status.get("first_start")
     is_verified = verify_status.get("is_verified", False)
     verified_time = verify_status.get("verified_time", 0)
 
-    now = int(time.time())
-    free_time_over = (now - first_start) > FREE_TIME
+    free_time_over = (now - first_start) >= FREE_TIME
 
-    # ---------------- EXPIRE VERIFY ----------------
-    if is_verified and VERIFY_EXPIRE < (now - verified_time):
+    # ---------------- VERIFY EXPIRE ----------------
+    if is_verified and (now - verified_time) >= VERIFY_EXPIRE:
         await update_verify_status(user_id, is_verified=False)
         is_verified = False
 
@@ -95,7 +96,7 @@ async def start_command(client: Client, message: Message):
         await update_verify_status(
             user_id,
             is_verified=True,
-            verified_time=int(time.time())
+            verified_time=now
         )
 
         return await message.reply(
@@ -133,14 +134,14 @@ async def start_command(client: Client, message: Message):
         for msg in messages:
             caption = (
                 CUSTOM_CAPTION.format(
-                    previouscaption="" if not msg.caption else msg.caption.html,
+                    previouscaption=msg.caption.html if msg.caption else "",
                     filename=msg.document.file_name
                 )
                 if CUSTOM_CAPTION and msg.document
                 else (msg.caption.html if msg.caption else "")
             )
 
-            reply_markup = msg.reply_markup if DISABLE_CHANNEL_BUTTON else None
+            reply_markup = msg.reply_markup if not DISABLE_CHANNEL_BUTTON else None
 
             try:
                 sent = await msg.copy(
@@ -158,7 +159,6 @@ async def start_command(client: Client, message: Message):
             except Exception as e:
                 logger.error(e)
 
-        # 🔥 AUTO DELETE
         if AUTO_DELETE_TIME > 0 and sent_msgs:
             info = await message.reply_text(
                 AUTO_DELETE_MSG.format(time=AUTO_DELETE_TIME)
@@ -168,7 +168,7 @@ async def start_command(client: Client, message: Message):
         return
 
     # =====================================================
-    # NORMAL START (FREE OR VERIFIED)
+    # FREE / VERIFIED ACCESS
     # =====================================================
     if is_verified or not free_time_over:
         buttons = InlineKeyboardMarkup(
@@ -178,17 +178,13 @@ async def start_command(client: Client, message: Message):
             ]]
         )
 
-        text = (
-            "🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n"
-            if not free_time_over else ""
-        )
+        text = "🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n" if not free_time_over else ""
 
         await message.reply_text(
             text + START_MSG.format(
                 first=message.from_user.first_name,
                 last=message.from_user.last_name,
-                username="@" + message.from_user.username
-                if message.from_user.username else None,
+                username="@" + message.from_user.username if message.from_user.username else "",
                 mention=message.from_user.mention,
                 id=user_id
             ),
@@ -201,16 +197,23 @@ async def start_command(client: Client, message: Message):
     # FREE TIME OVER → VERIFY
     # =====================================================
     token = "".join(random.choices(string.ascii_letters + string.digits, k=10))
-    await update_verify_status(user_id, verify_token=token, link="")
 
-    link = await get_shortlink(
+    await update_verify_status(
+        user_id,
+        verify_token=token,
+        is_verified=False
+    )
+
+    verify_link = f"https://t.me/{client.username}?start=verify_{token}"
+
+    short_link = await get_shortlink(
         SHORTLINK_URL,
         SHORTLINK_API,
-        f"https://t.me/{client.username}?start=verify_{token}"
+        verify_link
     )
 
     buttons = InlineKeyboardMarkup([
-        [InlineKeyboardButton("🔓 Verify Now", url=link)],
+        [InlineKeyboardButton("🔓 Verify Now", url=short_link)],
         [InlineKeyboardButton("📖 How to Use", url=TUT_VID)]
     ])
 
@@ -228,16 +231,13 @@ async def start_command(client: Client, message: Message):
 @Bot.on_message(filters.command("start") & filters.private)
 async def not_joined(client: Client, message: Message):
 
-    buttons = [
-        [InlineKeyboardButton("Join Channel", url=client.invitelink)]
-    ]
+    buttons = [[InlineKeyboardButton("Join Channel", url=client.invitelink)]]
 
     await message.reply(
         FORCE_MSG.format(
             first=message.from_user.first_name,
             last=message.from_user.last_name,
-            username="@" + message.from_user.username
-            if message.from_user.username else None,
+            username="@" + message.from_user.username if message.from_user.username else "",
             mention=message.from_user.mention,
             id=message.from_user.id
         ),
@@ -280,4 +280,4 @@ async def broadcast(client: Client, message: Message):
     await message.reply(
         f"✅ Broadcast complete\n\n"
         f"Success: {success}\nFailed: {failed}"
-                       )
+                                 )
