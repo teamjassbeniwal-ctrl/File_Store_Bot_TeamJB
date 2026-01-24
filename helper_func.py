@@ -94,14 +94,23 @@ async def get_verify_status(user_id):
     verify = await db_verify_status(user_id)
     return verify
 
-async def update_verify_status(user_id, verify_token="", is_verified=False, verified_time=0, link=""):
-    current = await db_verify_status(user_id)
-    current['verify_token'] = verify_token
-    current['is_verified'] = is_verified
-    current['verified_time'] = verified_time
-    current['link'] = link
-    await db_update_verify_status(user_id, current)
+async def update_verify_status(user_id: int, **kwargs):
+    """
+    Example calls:
+    update_verify_status(user_id, first_start=123)
+    update_verify_status(user_id, is_verified=True)
+    update_verify_status(user_id, verify_token="abc")
+    """
 
+    update_data = {}
+    for key, value in kwargs.items():
+        update_data[f"verify_status.{key}"] = value
+
+    if update_data:
+        await user_data.update_one(
+            {"_id": user_id},
+            {"$set": update_data}
+        )
 
 async def get_shortlink(url, api, link):
     shortzy = Shortzy(api_key=api, base_site=url)
