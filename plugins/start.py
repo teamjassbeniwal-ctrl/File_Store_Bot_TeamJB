@@ -216,7 +216,7 @@ async def start_command(client: Client, message: Message):
 
     await message.reply(
         "⏰ Your **FREE 3 HOURS** are over.\n\n"
-        "🔒 Please verify to continue using the bot for **24 hours**.",
+        "🔒 Please verify to continue using the bot for **8 hours**.",
         reply_markup=buttons,
         quote=True
     )
