@@ -99,7 +99,7 @@ async def start_command(client: Client, message: Message):
         )
 
         return await message.reply(
-            "✅ Verification successful!\nAccess unlocked for 24 hours."
+            "✅ Verification successful!\nAccess unlocked for 8 hours."
         )
 
     # =====================================================
