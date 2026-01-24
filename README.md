@@ -6,10 +6,10 @@
 
 <p align="center">
   <a href="https://t.me/teamjb1">
-    <img src="https://img.shields.io/badge/Team%20%F0%9D%95%8F%20OJB-Channel-blue?style=for-the-badge&logo=telegram" alt="Team JB Official Channel">
+    <img src="https://img.shields.io/badge/Team%20%F0%9D%95%8F%20OfJB-Channel-blue?style=for-the-badge&logo=telegram" alt="Team JB Official Channel">
   </a>
   <a href="https://t.me/botsupdatesgroup">
-    <img src="https://img.shields.io/badge/botsupdatesgroup%20%F0%9D%95%8F%20OGroup-blue?style=for-the-badge&logo=telegram" alt="Team JB Official Group">
+    <img src="https://img.shields.io/badge/botsupdatesgroup%20%F0%9D%95%8F%20OfGroup-blue?style=for-the-badge&logo=telegram" alt="Team JB Official Group">
   </a>
 </p>
 
@@ -42,8 +42,6 @@ Click the button below to deploy the bot on Heroku:
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
-For a detailed deployment guide, watch [this tutorial video](https://youtu.be/7jBbBL9t9jI?si=j52MwTn41TXsc76l).
-
 ### Deploy on Railway
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/1jKLr4)
@@ -52,12 +50,12 @@ For a detailed deployment guide, watch [this tutorial video](https://youtu.be/7j
 
 Click the button below to deploy the bot on Koyeb:
 
-[![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?type=git&repository=github.com/sahildesai07/file-sharing-token-bot&branch=main&name=file-sharing-bot)
+[![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?type=git&repository=github.com/teamjassbeniwal-ctrl/your_repo&branch=main&name=file-sharing-bot)
 
 ### Deploy on Your VPS
 
 ```bash
-git clone https://github.com/sahildesai07/file-sharing-token-bot
+git clone https://github.com/teamjassbeniwal-ctrl/File_Store_Bot_TeamJB
 cd file-sharing-token-bot
 pip3 install -r requirements.txt
 # <Create config.py appropriately>
@@ -87,19 +85,19 @@ stats - checking your bot uptime
 * `TG_BOT_TOKEN` Your bot token from @BotFather
 * `OWNER_ID` Must enter Your Telegram Id
 * `CHANNEL_ID` Your Channel ID eg:- -100xxxxxxxx
-* `DB_URI ` Your mongo db url [tutorial video](https://youtu.be/qFB0cFqiyOM).
+* `DB_URI ` Your mongo db url
 * `DB_name ` Your mongo db session name ( random )
 * `ADMINS` Optional: A space separated list of user_ids of Admins, they can only create links
-* `START_MESSAGE` Optional: start message of bot, use HTML and <a href='https://github.com/codexbotz/File-Sharing-Bot/blob/main/README.md#start_message'>fillings</a>
+* `START_MESSAGE` Optional: start message of bot, use HTML.
 * `FORCE_SUB_MESSAGE`Optional:Force sub message of bot, use HTML and Fillings
 * `FORCE_SUB_CHANNEL` Optional: ForceSub Channel ID, leave 0 if you want disable force sub
 * `PROTECT_CONTENT` Optional: True if you need to prevent files from forwarding
 
 ### Extra Variables
 
-* `CUSTOM_CAPTION` put your Custom caption text if you want Setup Custom Caption, you can use HTML and <a href='https://github.com/7thofficial/File-Sharing-Bot/blob/main/README.md#custom_caption'>fillings</a> for formatting (only for documents)
+* `CUSTOM_CAPTION` put your Custom caption text if you want Setup Custom Caption, you can use HTML for formatting (only for documents)
 * `DISABLE_CHANNEL_BUTTON` Put True to Disable Channel Share Button, Default if False
-* `BOT_STATS_TEXT` put your custom text for stats command, use HTML and <a href='https://github.com/7thofficial/File-Sharing-Bot/blob/main/README.md#custom_stats'>fillings</a>
+* `BOT_STATS_TEXT` put your custom text for stats command, use HTML
 * `USER_REPLY_TEXT` put your text to show when user sends any message, use HTML
 
 ### Token Variables
@@ -130,7 +128,7 @@ stats - checking your bot uptime
 
 
 💬 Support
-Join Our [Telegram Group](https://www.telegram.dog/ultroidofficial_chat) For Support/Assistance And Our [Channel](https://www.telegram.dog/ultroid_official) For Updates.   
+Join Our [Telegram Group](https://www.telegram.dog/botsupdatesgroup) For Support/Assistance And Our [Channel](https://www.telegram.dog/teamjb1) For Updates.   
    
 Report Bugs, Give Feature Requests There..   
 
@@ -142,7 +140,7 @@ Our support group members.
 📝 License
 GNU GPLv3 [![GNU GPLv3 Image](https://www.gnu.org/graphics/gplv3-127x51.png)](http://www.gnu.org/licenses/gpl-3.0.en.html) 
 
-[FILE-SHARING-BOT](https://github.com/7thofficial/File-Sharing-Bot/) is Free Software: You can use, study share and improve it at your
+[FILE-SHARING-BOT](https://github.com/teamjassbeniwal-ctrl/File_Store_Bot_TeamJB/) is Free Software: You can use, study share and improve it at your
 will. Specifically you can redistribute and/or modify it under the terms of the
 [GNU General Public License](https://www.gnu.org/licenses/gpl.html) as
 published by the Free Software Foundation, either version 3 of the License, or
