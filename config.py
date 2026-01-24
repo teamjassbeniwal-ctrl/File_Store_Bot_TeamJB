@@ -7,10 +7,10 @@ TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "")
 
 #Your API ID & API HASH from my.telegram.org 
 #Your API ID from my.telegram.org
-APP_ID = int(os.environ.get("APP_ID", "31212516"))
+APP_ID = int(os.environ.get("APP_ID", "25331263"))
 
 #Your API Hash from my.telegram.org
-API_HASH = os.environ.get("API_HASH", "ccc20df465364045538da8ecf8954992")
+API_HASH = os.environ.get("API_HASH", "cab85305bf85125a2ac053210bcd1030")
 
 #Your db channel Id
 CHANNEL_ID = int(os.environ.get("CHANNEL_ID", "-1003508451850"))
@@ -33,7 +33,7 @@ FREE_TIME = 3 * 60 * 60   # 3 hours
 
 SHORTLINK_URL = os.environ.get("SHORTLINK_URL", "arolinks.com")
 SHORTLINK_API = os.environ.get("SHORTLINK_API", "8d6b2153682ca17a4f89e662199d6b5917893bf0")
-VERIFY_EXPIRE = int(os.environ.get('VERIFY_EXPIRE', 86400)) # Add time in seconds
+VERIFY_EXPIRE = int(os.environ.get('VERIFY_EXPIRE', 28,800)) # Add time in seconds
 IS_VERIFY = os.environ.get("IS_VERIFY", "True")
 TUT_VID = os.environ.get("TUT_VID", "https://t.me/+JAdctcMYdSUzZGU1") # shareus ka tut_vid he 
 
