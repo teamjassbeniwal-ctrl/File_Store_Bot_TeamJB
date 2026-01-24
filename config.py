@@ -7,10 +7,10 @@ TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "")
 
 #Your API ID & API HASH from my.telegram.org 
 #Your API ID from my.telegram.org
-APP_ID = int(os.environ.get("APP_ID", "25331263"))
+APP_ID = int(os.environ.get("APP_ID", "31212516"))
 
 #Your API Hash from my.telegram.org
-API_HASH = os.environ.get("API_HASH", "cab85305bf85125a2ac053210bcd1030")
+API_HASH = os.environ.get("API_HASH", "ccc20df465364045538da8ecf8954992")
 
 #Your db channel Id
 CHANNEL_ID = int(os.environ.get("CHANNEL_ID", "-1003508451850"))
@@ -31,11 +31,11 @@ DB_NAME = os.environ.get("DATABASE_NAME", "Cluster0")
 # 
 FREE_TIME = 3 * 60 * 60   # 3 hours
 
-SHORTLINK_URL = os.environ.get("SHORTLINK_URL", "inshorturl.com")
-SHORTLINK_API = os.environ.get("SHORTLINK_API", "9f943360c339cec4fed66d9d5cbaa0c2b3d41f81")
+SHORTLINK_URL = os.environ.get("SHORTLINK_URL", "arolinks.com")
+SHORTLINK_API = os.environ.get("SHORTLINK_API", "8d6b2153682ca17a4f89e662199d6b5917893bf0")
 VERIFY_EXPIRE = int(os.environ.get('VERIFY_EXPIRE', 86400)) # Add time in seconds
 IS_VERIFY = os.environ.get("IS_VERIFY", "True")
-TUT_VID = os.environ.get("TUT_VID", "https://t.me/+PZfHvzjSiZc4OGE1") # shareus ka tut_vid he 
+TUT_VID = os.environ.get("TUT_VID", "https://t.me/+JAdctcMYdSUzZGU1") # shareus ka tut_vid he 
 
 #force sub channel id, if you want enable force sub
 FORCE_SUB_CHANNEL = int(os.environ.get("FORCE_SUB_CHANNEL", "-1002888391802"))
@@ -62,7 +62,7 @@ PROTECT_CONTENT = True if os.environ.get('PROTECT_CONTENT', "False") == "True" e
 
 
 # Auto delete time in seconds.
-AUTO_DELETE_TIME = int(os.getenv("AUTO_DELETE_TIME", "60"))
+AUTO_DELETE_TIME = int(os.getenv("AUTO_DELETE_TIME", "150"))
 AUTO_DELETE_MSG = os.environ.get("AUTO_DELETE_MSG", "This file will be automatically deleted in {time} seconds. Please ensure you have saved any necessary content before this time.")
 AUTO_DEL_SUCCESS_MSG = os.environ.get("AUTO_DEL_SUCCESS_MSG", "Your file has been successfully deleted. Thank you for using our service. ✅")
 
