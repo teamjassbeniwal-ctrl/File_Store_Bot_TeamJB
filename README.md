@@ -6,10 +6,10 @@
 
 <p align="center">
   <a href="https://t.me/teamjb1">
-    <img src="https://img.shields.io/badge/Team%20%F0%9D%95%8F%20OfJB-Channel-blue?style=for-the-badge&logo=telegram" alt="Team JB Official Channel">
+    <img src="https://img.shields.io/badge/Team%20%F0%9D%95%8F%20JB-Channel-blue?style=for-the-badge&logo=telegram" alt="Team JB Official Channel">
   </a>
   <a href="https://t.me/botsupdatesgroup">
-    <img src="https://img.shields.io/badge/botsupdatesgroup%20%F0%9D%95%8F%20OfGroup-blue?style=for-the-badge&logo=telegram" alt="Team JB Official Group">
+    <img src="https://img.shields.io/badge/botsupdatesgroup%20%F0%9D%95%8F%20Group-blue?style=for-the-badge&logo=telegram" alt="Team JB Official Group">
   </a>
 </p>
 
