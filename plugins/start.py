@@ -18,6 +18,8 @@ from config import (
     ADMINS,
     FORCE_MSG,
     START_MSG,
+    FORCE_PIC,
+    WELCOME_PIC,
     CUSTOM_CAPTION,
     VERIFY_EXPIRE,
     SHORTLINK_API,
@@ -180,18 +182,19 @@ async def start_command(client: Client, message: Message):
 
         text = "🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n" if not free_time_over else ""
 
-        await message.reply_text(
-            text + START_MSG.format(
-                first=message.from_user.first_name,
-                last=message.from_user.last_name,
-                username="@" + message.from_user.username if message.from_user.username else "",
-                mention=message.from_user.mention,
-                id=user_id
-            ),
-            reply_markup=buttons,
-            quote=True
-        )
-        return
+        await message.reply_photo(
+    photo=WELCOME_PIC,
+    caption=text + START_MSG.format(
+        first=message.from_user.first_name,
+        last=message.from_user.last_name,
+        username="@" + message.from_user.username if message.from_user.username else "",
+        mention=message.from_user.mention,
+        id=user_id
+    ),
+    reply_markup=buttons,
+    quote=True
+)
+return
 
     # =====================================================
     # FREE TIME OVER → VERIFY
@@ -231,17 +234,20 @@ async def start_command(client: Client, message: Message):
 @Bot.on_message(filters.command("start") & filters.private)
 async def not_joined(client: Client, message: Message):
 
-    buttons = [[InlineKeyboardButton("Join Channel", url=client.invitelink)]]
+    buttons = InlineKeyboardMarkup(
+        [[InlineKeyboardButton("🔔 Join Channel", url=client.invitelink)]]
+    )
 
-    await message.reply(
-        FORCE_MSG.format(
+    await message.reply_photo(
+        photo=FORCE_PIC,
+        caption=FORCE_MSG.format(
             first=message.from_user.first_name,
             last=message.from_user.last_name,
             username="@" + message.from_user.username if message.from_user.username else "",
             mention=message.from_user.mention,
             id=message.from_user.id
         ),
-        reply_markup=InlineKeyboardMarkup(buttons),
+        reply_markup=buttons,
         quote=True
     )
 
