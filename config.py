@@ -43,6 +43,12 @@ FORCE_SUB_CHANNEL = int(os.environ.get("FORCE_SUB_CHANNEL", "-1001789274849"))
 TG_BOT_WORKERS = int(os.environ.get("TG_BOT_WORKERS", "4"))
 
 #start message
+# Force subscribe image
+FORCE_PIC = "https://ibb.co/LDVSztT3"
+
+# Welcome / Start image
+WELCOME_PIC = "https://ibb.co/Q2LV27F"
+
 START_MSG = os.environ.get("START_MESSAGE", "Hello {first}\n\nI can store private files in Specified Channel and other users can access it from special link.")
 try:
     ADMINS=[]
