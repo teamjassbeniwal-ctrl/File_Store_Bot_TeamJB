@@ -56,19 +56,22 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+# =========================================================
+# START (JOINED USERS)
+# =========================================================
 @Bot.on_message(filters.command("start") & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
 
     user_id = message.from_user.id
     now = int(time.time())
 
-    # ---------------- ADD USER ----------------
+    # ---------- ADD USER ----------
     if not await present_user(user_id):
         await add_user(user_id)
 
     verify_status = await get_verify_status(user_id)
 
-    # ---------------- FIRST START SAVE ----------------
+    # ---------- FIRST START ----------
     if "first_start" not in verify_status:
         await update_verify_status(user_id, first_start=now)
         verify_status["first_start"] = now
@@ -79,7 +82,7 @@ async def start_command(client: Client, message: Message):
 
     free_time_over = (now - first_start) >= FREE_TIME
 
-    # ---------------- VERIFY EXPIRE ----------------
+    # ---------- VERIFY EXPIRE ----------
     if is_verified and (now - verified_time) >= VERIFY_EXPIRE:
         await update_verify_status(user_id, is_verified=False)
         is_verified = False
@@ -91,9 +94,7 @@ async def start_command(client: Client, message: Message):
         token = message.text.split("verify_", 1)[1]
 
         if verify_status.get("verify_token") != token:
-            return await message.reply(
-                "❌ Invalid or expired token.\nUse /start again."
-            )
+            return await message.reply("❌ Invalid or expired token.\nUse /start again.")
 
         await update_verify_status(
             user_id,
@@ -101,15 +102,12 @@ async def start_command(client: Client, message: Message):
             verified_time=now
         )
 
-        return await message.reply(
-            "✅ Verification successful!\nAccess unlocked for 8 hours."
-        )
+        return await message.reply("✅ Verification successful!\nAccess unlocked for 8 hours.")
 
     # =====================================================
     # FILE REQUEST
     # =====================================================
     if len(message.text) > 7 and (is_verified or not free_time_over):
-
         try:
             base64_string = message.text.split(" ", 1)[1]
         except:
@@ -155,46 +153,42 @@ async def start_command(client: Client, message: Message):
                 )
                 sent_msgs.append(sent)
                 await asyncio.sleep(0.5)
-
             except FloodWait as e:
                 await asyncio.sleep(e.x)
             except Exception as e:
                 logger.error(e)
 
         if AUTO_DELETE_TIME > 0 and sent_msgs:
-            info = await message.reply_text(
-                AUTO_DELETE_MSG.format(time=AUTO_DELETE_TIME)
-            )
+            info = await message.reply_text(AUTO_DELETE_MSG.format(time=AUTO_DELETE_TIME))
             asyncio.create_task(delete_file(sent_msgs, client, info))
-
         return
 
     # =====================================================
-    # FREE / VERIFIED ACCESS
+    # FREE / VERIFIED WELCOME
     # =====================================================
     if is_verified or not free_time_over:
         buttons = InlineKeyboardMarkup(
             [[
-                InlineKeyboardButton("About", callback_data="about"),
-                InlineKeyboardButton("Close", callback_data="close")
+                InlineKeyboardButton("ℹ️ About", callback_data="about"),
+                InlineKeyboardButton("❌ Close", callback_data="close")
             ]]
         )
 
         text = "🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n" if not free_time_over else ""
 
         await message.reply_photo(
-    photo=WELCOME_PIC,
-    caption=text + START_MSG.format(
-        first=message.from_user.first_name,
-        last=message.from_user.last_name,
-        username="@" + message.from_user.username if message.from_user.username else "",
-        mention=message.from_user.mention,
-        id=user_id
-    ),
-    reply_markup=buttons,
-    quote=True
-)
-return
+            photo=WELCOME_PIC,
+            caption=text + START_MSG.format(
+                first=message.from_user.first_name,
+                last=message.from_user.last_name,
+                username="@" + message.from_user.username if message.from_user.username else "",
+                mention=message.from_user.mention,
+                id=user_id
+            ),
+            reply_markup=buttons,
+            quote=True
+        )
+        return
 
     # =====================================================
     # FREE TIME OVER → VERIFY
@@ -208,12 +202,7 @@ return
     )
 
     verify_link = f"https://t.me/{client.username}?start=verify_{token}"
-
-    short_link = await get_shortlink(
-        SHORTLINK_URL,
-        SHORTLINK_API,
-        verify_link
-    )
+    short_link = await get_shortlink(SHORTLINK_URL, SHORTLINK_API, verify_link)
 
     buttons = InlineKeyboardMarkup([
         [InlineKeyboardButton("🔓 Verify Now", url=short_link)],
@@ -229,7 +218,7 @@ return
 
 
 # =========================================================
-# FORCE SUBSCRIBE
+# FORCE SUBSCRIBE (NOT JOINED)
 # =========================================================
 @Bot.on_message(filters.command("start") & filters.private)
 async def not_joined(client: Client, message: Message):
@@ -286,4 +275,4 @@ async def broadcast(client: Client, message: Message):
     await message.reply(
         f"✅ Broadcast complete\n\n"
         f"Success: {success}\nFailed: {failed}"
-                                 )
+        )
