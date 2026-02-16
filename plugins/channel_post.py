@@ -1,4 +1,4 @@
-# PhdLust - Fixed & Production Safe Version
+# PhdLust - FINAL Fixed Version
 
 import asyncio
 from pyrogram import filters, Client
@@ -13,13 +13,12 @@ from helper_func import encode
 # =====================================================
 # PRIVATE LINK GENERATOR (ADMIN ONLY)
 # =====================================================
-@Bot.on_message(
-    filters.private
-    & filters.user(ADMINS)
-    & filters.text
-    & ~filters.command(None)   # ✅ Ignore ALL commands
-)
+@Bot.on_message(filters.private & filters.user(ADMINS))
 async def channel_post(client: Client, message: Message):
+
+    # 🚫 BLOCK ALL COMMANDS HERE
+    if message.text and message.text.startswith("/"):
+        return
 
     reply_text = await message.reply_text("Please Wait...!", quote=True)
 
@@ -57,7 +56,6 @@ async def channel_post(client: Client, message: Message):
 
     new_text = f"<b>Here is your link</b>\n\n{link}"
 
-    # Safe edit (Prevents MESSAGE_NOT_MODIFIED error)
     try:
         await reply_text.edit_text(
             new_text,
