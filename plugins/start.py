@@ -41,7 +41,10 @@ from database.database import (
     add_user,
     del_user,
     full_userbase,
-    present_user
+    present_user,
+    is_premium_user,
+    add_premium_user,
+    remove_premium_user
 )
 
 # ================= CONFIG =================
@@ -75,6 +78,11 @@ async def start_command(client: Client, message: Message):
     is_verified = verify_status.get("is_verified", False)  
     verified_time = verify_status.get("verified_time", 0)  
 
+    premium = await is_premium_user(user_id)
+
+if premium:
+    free_time_over = False
+else:
     free_time_over = (now - first_start) >= FREE_TIME  
 
     # ---------- VERIFY EXPIRE ----------  
@@ -247,3 +255,43 @@ async def broadcast(client: Client, message: Message):
             failed += 1  
 
     await message.reply(f"✅ Broadcast complete\n\nSuccess: {success}\nFailed: {failed}")
+
+@Bot.on_message(filters.command("addpremium") & filters.user(ADMINS))
+async def give_premium(client: Client, message: Message):
+    try:
+        user_id = int(message.text.split()[1])
+        duration = int(message.text.split()[2]) if len(message.text.split()) > 2 else 0
+        await add_premium_user(user_id, duration)
+        await message.reply("✅ Premium Added Successfully!")
+    except:
+        await message.reply("Usage:\n/addpremium user_id seconds")
+
+@Bot.on_message(filters.command("removepremium") & filters.user(ADMINS))
+async def remove_premium(client: Client, message: Message):
+    try:
+        user_id = int(message.text.split()[1])
+        await remove_premium_user(user_id)
+        await message.reply("❌ Premium Removed!")
+    except:
+        await message.reply("Usage:\n/removepremium user_id")
+
+@Bot.on_message(filters.command("myplan") & filters.private)
+async def my_plan(client: Client, message: Message):
+    user_id = message.from_user.id
+    premium = await is_premium_user(user_id)
+
+    if premium:
+        await message.reply("💎 You are a PREMIUM user.")
+    else:
+        await message.reply("🆓 You are using FREE plan.")
+
+@Bot.on_message(filters.command("plans") & filters.private)
+async def plans(client: Client, message: Message):
+    await message.reply(
+        "💎 PREMIUM PLANS\n\n"
+        "1 Day - ₹5\n"
+        "7 Days - ₹10\n"
+        "30 Days - ₹30\n\n"
+        "Contact Admin to Buy."
+    )
+
