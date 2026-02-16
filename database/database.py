@@ -66,3 +66,49 @@ async def full_userbase():
 # -------------------- DELETE USER --------------------
 async def del_user(user_id: int):
     await user_data.delete_one({'_id': user_id})
+
+# -------------------- PREMIUM SYSTEM --------------------
+
+async def is_premium_user(user_id: int):
+    user = await user_data.find_one({'_id': user_id})
+    if not user:
+        return False
+
+    premium = user.get("premium_status", {})
+    if not premium.get("is_premium", False):
+        return False
+
+    expire_time = premium.get("expire_time", 0)
+
+    if expire_time == 0:
+        return True
+
+    if time.time() > expire_time:
+        await user_data.update_one(
+            {'_id': user_id},
+            {'$set': {'premium_status.is_premium': False}}
+        )
+        return False
+
+    return True
+
+
+async def add_premium_user(user_id: int, duration: int = 0):
+    expire_time = int(time.time()) + duration if duration > 0 else 0
+    await user_data.update_one(
+        {'_id': user_id},
+        {'$set': {
+            'premium_status.is_premium': True,
+            'premium_status.expire_time': expire_time
+        }}
+    )
+
+
+async def remove_premium_user(user_id: int):
+    await user_data.update_one(
+        {'_id': user_id},
+        {'$set': {
+            'premium_status.is_premium': False,
+            'premium_status.expire_time': 0
+        }}
+    )
