@@ -3,6 +3,7 @@ import logging
 import random
 import string
 import time
+from datetime import datetime
 
 from pyrogram import Client, filters
 from pyrogram.enums import ParseMode
@@ -263,33 +264,63 @@ async def give_premium(client: Client, message: Message):
         user_id = int(parts[1])
         time_input = parts[2].lower()
 
-        # ---------- TIME CONVERT ----------
-        if time_input.endswith("d"):  # Days
+        # TIME CONVERT
+        if time_input.endswith("d"):
             days = int(time_input[:-1])
             duration = days * 86400
-
-        elif time_input.endswith("m"):  # Months (30 days)
+        elif time_input.endswith("m"):
             months = int(time_input[:-1])
             duration = months * 30 * 86400
-
         else:
-            return await message.reply("❌ Use format: 1d (day) or 1m (month)")
+            return await message.reply("Use format: 7d or 1m")
+
+        now = int(time.time())
+        expire_time = now + duration
 
         await add_premium_user(user_id, duration)
 
-        # Notify User
+        # FORMAT TIME
+        join_date = datetime.fromtimestamp(now).strftime("%d-%m-%Y")
+        join_time = datetime.fromtimestamp(now).strftime("%I:%M:%S %p")
+        exp_date = datetime.fromtimestamp(expire_time).strftime("%d-%m-%Y")
+        exp_time = datetime.fromtimestamp(expire_time).strftime("%I:%M:%S %p")
+
+        user = await client.get_users(user_id)
+
+        # ADMIN MESSAGE
+        await message.reply(
+f"""ᴘʀᴇᴍɪᴜᴍ ᴀᴅᴅᴇᴅ ꜱᴜᴄᴄᴇꜱꜱꜰᴜʟʟʏ ✅
+
+👤 ᴜꜱᴇʀ : {user.first_name}
+⚡ ᴜꜱᴇʀ ɪᴅ : <code>{user_id}</code>
+⏰ ᴘʀᴇᴍɪᴜᴍ ᴀᴄᴄᴇꜱꜱ : <code>{time_input}</code>
+
+⏳ ᴊᴏɪɴɪɴɢ ᴅᴀᴛᴇ : {join_date}
+⏱️ ᴊᴏɪɴɪɴɢ ᴛɪᴍᴇ : {join_time}
+
+⌛️ ᴇxᴘɪʀʏ ᴅᴀᴛᴇ : {exp_date}
+⏱️ ᴇxᴘɪʀʏ ᴛɪᴍᴇ : {exp_time}
+"""
+        )
+
+        # USER MESSAGE
         try:
             await client.send_message(
-                chat_id=user_id,
-                text=f"💎 PREMIUM ACTIVATED!\n\n⏳ Duration: {time_input.upper()}\nEnjoy unlimited access 🚀"
+                user_id,
+f"""👋 ʜᴇʏ {user.first_name},
+ᴛʜᴀɴᴋ ʏᴏᴜ ꜰᴏʀ ᴘᴜʀᴄʜᴀꜱɪɴɢ ᴘʀᴇᴍɪᴜᴍ 🎉
+
+⏰ ᴘʀᴇᴍɪᴜᴍ ᴀᴄᴄᴇꜱꜱ : <code>{time_input}</code>
+
+⌛️ ᴇxᴘɪʀʏ ᴅᴀᴛᴇ : {exp_date}
+⏱️ ᴇxᴘɪʀʏ ᴛɪᴍᴇ : {exp_time}
+"""
             )
         except:
             pass
 
-        await message.reply("✅ Premium Added Successfully & User Notified!")
-
     except:
-        await message.reply("Usage:\n/addpremium user_id 1d\n/addpremium user_id 1m")
+        await message.reply("Usage:\n/addpremium user_id 7d")
 
 @Bot.on_message(filters.command("removepremium") & filters.user(ADMINS))
 async def remove_premium(client: Client, message: Message):
@@ -303,12 +334,44 @@ async def remove_premium(client: Client, message: Message):
 @Bot.on_message(filters.command("myplan") & filters.private)
 async def my_plan(client: Client, message: Message):
     user_id = message.from_user.id
-    premium = await is_premium_user(user_id)
+    user = await user_data.find_one({'_id': user_id})
 
-    if premium:
-        await message.reply("💎 You are a PREMIUM user.")
-    else:
-        await message.reply("🆓 You are using FREE plan.")
+    if not user:
+        return await message.reply("🆓 You are using FREE plan.")
+
+    premium = user.get("premium_status", {})
+
+    if not premium.get("is_premium", False):
+        return await message.reply("🆓 You are using FREE plan.")
+
+    expire_time = premium.get("expire_time", 0)
+    now = int(time.time())
+
+    if now > expire_time:
+        await remove_premium_user(user_id)
+        return await message.reply("🆓 Your premium expired.")
+
+    remaining = expire_time - now
+
+    days = remaining // 86400
+    hours = (remaining % 86400) // 3600
+    minutes = (remaining % 3600) // 60
+
+    exp_date = datetime.fromtimestamp(expire_time).strftime("%d-%m-%Y")
+    exp_time = datetime.fromtimestamp(expire_time).strftime("%I:%M:%S %p")
+
+    await message.reply(
+f"""⚜️ ᴘʀᴇᴍɪᴜᴍ ᴜꜱᴇʀ ᴅᴀᴛᴀ :
+
+👤 ᴜꜱᴇʀ : {message.from_user.first_name}
+⚡ ᴜꜱᴇʀ ɪᴅ : <code>{user_id}</code>
+
+⏰ ᴛɪᴍᴇ ʟᴇꜰᴛ : {days} ᴅᴀʏꜱ, {hours} ʜᴏᴜʀꜱ, {minutes} ᴍɪɴᴜᴛᴇꜱ
+
+⌛️ ᴇxᴘɪʀʏ ᴅᴀᴛᴇ : {exp_date}
+⏱️ ᴇxᴘɪʀʏ ᴛɪᴍᴇ : {exp_time}
+"""
+    )
 
 @Bot.on_message(filters.command("plans") & filters.private)
 async def plans(client: Client, message: Message):
