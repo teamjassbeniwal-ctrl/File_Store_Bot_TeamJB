@@ -29,6 +29,10 @@ def new_user(user_id: int) -> dict:
             'verify_token': "",
             'link': "",
             'first_start': int(time.time())  # 3 HOURS TIMER START
+        },
+        'premium_status': {
+            'is_premium': False,
+            'expire_time': 0   # timestamp when premium expires, 0 for lifetime
         }
     }
 
