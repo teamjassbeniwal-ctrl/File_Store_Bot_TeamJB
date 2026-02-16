@@ -108,16 +108,23 @@ async def my_plan(client, message):
     user_id = message.from_user.id
     premium = await is_premium_user(user_id)
 
+    # ❌ Not Premium
     if not premium:
         return await message.reply("🆓 You are using FREE plan.")
 
     expire_time = premium.get("expire_time")
+
+    if not expire_time:
+        return await message.reply("🆓 You are using FREE plan.")
+
     now = int(time.time())
 
+    # ❌ Expired
     if now > expire_time:
         await remove_premium_user(user_id)
         return await message.reply("🆓 Your premium expired.")
 
+    # ✅ Active Premium
     remaining = expire_time - now
 
     days = remaining // 86400
@@ -128,7 +135,8 @@ async def my_plan(client, message):
     exp_time = datetime.fromtimestamp(expire_time).strftime("%I:%M:%S %p")
 
     await message.reply(
-f"""⚜️ ᴘʀᴇᴍɪᴜᴍ ᴜꜱᴇʀ ᴅᴀᴛᴀ :
+f"""👋 ʜᴇʏ {user.first_name},
+⚜️ ᴘʀᴇᴍɪᴜᴍ ᴜꜱᴇʀ ᴅᴀᴛᴀ :
 
 👤 ᴜꜱᴇʀ : {message.from_user.first_name}
 ⚡ ᴜꜱᴇʀ ɪᴅ : <code>{user_id}</code>
@@ -139,17 +147,40 @@ f"""⚜️ ᴘʀᴇᴍɪᴜᴍ ᴜꜱᴇʀ ᴅᴀᴛᴀ :
 """,
         parse_mode=ParseMode.HTML
     )
-
-
 # ================================
 # PLANS
 # ================================
 @Bot.on_message(filters.command("plans") & filters.private)
 async def plans_cmd(client, message):
     await message.reply(
-        "💎 PREMIUM PLANS\n\n"
-        "1 Day - ₹5\n"
-        "7 Days - ₹10\n"
-        "30 Days - ₹30\n\n"
-        "Contact Admin to Buy."
-)
+"""ᴀᴠᴀɪʟᴀʙʟᴇ ᴘʟᴀɴs  ♻️
+
+• 𝟷 ᴡᴇᴇᴋ  -  ₹𝟹𝟶
+• 𝟷 ᴍᴏɴᴛʜ  -  ₹𝟻𝟶
+• 𝟹 ᴍᴏɴᴛʜs  -  ₹𝟷𝟶𝟶
+• 𝟼 ᴍᴏɴᴛʜs  -  ₹18𝟶
+• 12 ᴍᴏɴᴛʜs  -  ₹35𝟶
+
+•─────•─────────•─────•
+ᴘʀᴇᴍɪᴜᴍ ꜰᴇᴀᴛᴜʀᴇs  🎁
+
+○ ɴᴏ ɴᴇᴇᴅ ᴛᴏ ᴠᴇʀɪꜰʏ
+○ ᴅɪʀᴇᴄᴛ ꜰɪʟᴇs   
+○ ᴀᴅ-ꜰʀᴇᴇ ᴇxᴘᴇʀɪᴇɴᴄᴇ 
+○ ʜɪɢʜ-sᴘᴇᴇᴅ ᴅᴏᴡɴʟᴏᴀᴅ ʟɪɴᴋ                         
+○ ᴍᴜʟᴛɪ-ᴘʟᴀʏᴇʀ sᴛʀᴇᴀᴍɪɴɢ ʟɪɴᴋs                           
+○ ᴜɴʟɪᴍɪᴛᴇᴅ files                                                                                                  
+○ ʀᴇǫᴜᴇsᴛ ᴡɪʟʟ ʙᴇ ᴄᴏᴍᴘʟᴇᴛᴇᴅ ɪɴ 𝟷ʜ
+•─────•─────────•─────•
+
+✨ ᴜᴘɪ ɪᴅ - yourupiid
+
+ᴄʜᴇᴄᴋ ʏᴏᴜʀ ᴀᴄᴛɪᴠᴇ ᴘʟᴀɴ  /myplan
+
+💢 ᴍᴜsᴛ sᴇɴᴅ sᴄʀᴇᴇɴsʜᴏᴛ ᴀꜰᴛᴇʀ ᴘᴀʏᴍᴇɴᴛ
+
+‼️ ᴀꜰᴛᴇʀ sᴇɴᴅɪɴɢ ᴀ sᴄʀᴇᴇɴsʜᴏᴛ ᴘʟᴇᴀsᴇ ɢɪᴠᴇ ᴍᴇ sᴏᴍᴇ ᴛɪᴍᴇ ᴛᴏ ᴀᴅᴅ ʏᴏᴜ ɪɴ ᴛʜᴇ ᴘʀᴇᴍɪᴜᴍ ᴠᴇʀsɪᴏɴ.
+
+Message here @Team_JB
+"""
+    )
