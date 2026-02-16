@@ -135,8 +135,7 @@ async def my_plan(client, message):
     exp_time = datetime.fromtimestamp(expire_time).strftime("%I:%M:%S %p")
 
     await message.reply(
-f"""👋 ʜᴇʏ {message.from_user.first_name},
-⚜️ ᴘʀᴇᴍɪᴜᴍ ᴜꜱᴇʀ ᴅᴀᴛᴀ :
+f"""⚜️ ᴘʀᴇᴍɪᴜᴍ ᴜꜱᴇʀ ᴅᴀᴛᴀ :,
 
 👤 ᴜꜱᴇʀ : {message.from_user.first_name}
 ⚡ ᴜꜱᴇʀ ɪᴅ : <code>{user_id}</code>
