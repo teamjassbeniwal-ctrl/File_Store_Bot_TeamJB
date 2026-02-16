@@ -4,6 +4,7 @@ from pyrogram import filters
 from pyrogram.enums import ParseMode
 from bot import Bot
 from config import ADMINS
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from database.database import add_premium_user, remove_premium_user, is_premium_user
 
 # ================================
@@ -181,29 +182,29 @@ async def plans_cmd(client, message):
 
 Message here @Team_JB
 """
-buttons = InlineKeyboardMarkup(
+
+    buttons = InlineKeyboardMarkup(
         [
-            [
-                InlineKeyboardButton("📞 Contact Owner", url="https://t.me/TeamJB_bot")
-            ],
-            [
-                InlineKeyboardButton("💳 Get QR Code", callback_data="show_qr")
-            ]
+            [InlineKeyboardButton("📞 Contact Owner", url="https://t.me/TeamJB_bot")],
+            [InlineKeyboardButton("💳 Get QR Code", callback_data="show_qr")]
         ]
     )
 
     await message.reply_photo(
-        photo="https://i.ibb.co/PsqxZh2d/IMG-20251213-214014-515.jpg",  # your image file name
+        photo="https://i.ibb.co/PsqxZh2d/IMG-20251213-214014-515.jpg",
         caption=caption,
         reply_markup=buttons
     )
 
 
-@app.on_callback_query(filters.regex("show_qr"))
+# ================================
+# QR CALLBACK
+# ================================
+@Bot.on_callback_query(filters.regex("show_qr"))
 async def show_qr(client, callback_query):
 
     await callback_query.message.reply_photo(
-        photo="https://i.ibb.co/PsqxZh2d/IMG-20251213-214014-515.jpg",  # your QR image file
+        photo="https://i.ibb.co/PsqxZh2d/IMG-20251213-214014-515.jpg",
         caption="📲 Scan this QR and send payment screenshot."
     )
 
