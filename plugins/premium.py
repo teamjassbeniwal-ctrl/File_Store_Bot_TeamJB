@@ -151,8 +151,7 @@ f"""⚜️ ᴘʀᴇᴍɪᴜᴍ ᴜꜱᴇʀ ᴅᴀᴛᴀ :,
 # ================================
 @Bot.on_message(filters.command("plans") & filters.private)
 async def plans_cmd(client, message):
-    await message.reply(
-"""ᴀᴠᴀɪʟᴀʙʟᴇ ᴘʟᴀɴs  ♻️
+    caption = """ᴀᴠᴀɪʟᴀʙʟᴇ ᴘʟᴀɴs  ♻️
 
 • 𝟷 ᴡᴇᴇᴋ  -  ₹𝟹𝟶
 • 𝟷 ᴍᴏɴᴛʜ  -  ₹𝟻𝟶
@@ -182,4 +181,30 @@ async def plans_cmd(client, message):
 
 Message here @Team_JB
 """
+buttons = InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton("📞 Contact Owner", url="https://t.me/TeamJB_bot")
+            ],
+            [
+                InlineKeyboardButton("💳 Get QR Code", callback_data="show_qr")
+            ]
+        ]
     )
+
+    await message.reply_photo(
+        photo="https://i.ibb.co/PsqxZh2d/IMG-20251213-214014-515.jpg",  # your image file name
+        caption=caption,
+        reply_markup=buttons
+    )
+
+
+@app.on_callback_query(filters.regex("show_qr"))
+async def show_qr(client, callback_query):
+
+    await callback_query.message.reply_photo(
+        photo="https://i.ibb.co/PsqxZh2d/IMG-20251213-214014-515.jpg",  # your QR image file
+        caption="📲 Scan this QR and send payment screenshot."
+    )
+
+    await callback_query.answer()
