@@ -14,7 +14,7 @@ async def cb_handler(client: Bot, query: CallbackQuery):
                 f"<b>○ Creator : <a href='tg://user?id={OWNER_ID}'>This Person</a>\n"
                 f"○ Language : <code>Python3</code>\n"
                 f"○ Library : <a href='https://docs.pyrogram.org/'>Pyrogram asyncio {__version__}</a>\n"
-                f"○ Source Code : <a href='@TeamJB_bot'>Click here</a>\n"
+                f"○ Source Code : <a href='https://t.me/botsupdatesgroup'>Click here</a>\n"
                 f"○ Channel : @teamjb1\n"
                 f"○ Support Group : @botsupdatesgroup</b>"
             ),
