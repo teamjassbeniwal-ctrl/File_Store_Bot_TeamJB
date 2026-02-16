@@ -2,7 +2,7 @@ import time
 from pyrogram import filters
 from bot import Bot
 from config import ADMINS
-from database.database import user_data
+from database.database import add_user, user_data
 
 
 # =========================================
@@ -10,16 +10,10 @@ from database.database import user_data
 # =========================================
 async def is_premium(user_id: int):
     user = await user_data.find_one({"_id": user_id})
-
     if not user:
         return False
-
     premium = user.get("premium_status", {})
-
-    if premium.get("is_premium") and premium.get("expiry", 0) > int(time.time()):
-        return True
-
-    return False
+    return premium.get("is_premium", False) and premium.get("expiry", 0) > int(time.time())
 
 
 # =========================================
@@ -27,7 +21,6 @@ async def is_premium(user_id: int):
 # =========================================
 @Bot.on_message(filters.command("addpremium") & filters.private & filters.user(ADMINS))
 async def add_premium(client, message):
-
     if len(message.command) != 3:
         return await message.reply(
             "Usage:\n/addpremium user_id time\nExample:\n/addpremium 123456789 1d"
@@ -36,6 +29,7 @@ async def add_premium(client, message):
     user_id = int(message.command[1])
     time_text = message.command[2]
 
+    # Convert time string to seconds
     if time_text.endswith("m"):
         seconds = int(time_text[:-1]) * 60
     elif time_text.endswith("h"):
@@ -43,9 +37,12 @@ async def add_premium(client, message):
     elif time_text.endswith("d"):
         seconds = int(time_text[:-1]) * 86400
     else:
-        return await message.reply("Use m (minutes), h (hours), d (days)")
+        return await message.reply("❌ Use m (minutes), h (hours), d (days)")
 
     expiry = int(time.time()) + seconds
+
+    # Ensure user exists in DB
+    await add_user(user_id)
 
     await user_data.update_one(
         {"_id": user_id},
@@ -53,8 +50,7 @@ async def add_premium(client, message):
             "premium_status.is_premium": True,
             "premium_status.plan": time_text,
             "premium_status.expiry": expiry
-        }},
-        upsert=True
+        }}
     )
 
     await message.reply(f"✅ Premium added to {user_id} for {time_text}")
@@ -65,11 +61,11 @@ async def add_premium(client, message):
 # =========================================
 @Bot.on_message(filters.command("removepremium") & filters.private & filters.user(ADMINS))
 async def remove_premium(client, message):
-
     if len(message.command) != 2:
         return await message.reply("Usage:\n/removepremium user_id")
 
     user_id = int(message.command[1])
+    await add_user(user_id)  # Ensure user exists
 
     await user_data.update_one(
         {"_id": user_id},
@@ -88,13 +84,12 @@ async def remove_premium(client, message):
 # =========================================
 @Bot.on_message(filters.command("myplan") & filters.private)
 async def my_plan(client, message):
-
     user_id = message.from_user.id
+
+    # Ensure user exists in DB
+    await add_user(user_id)
+
     user = await user_data.find_one({"_id": user_id})
-
-    if not user:
-        return await message.reply("❌ No data found.")
-
     premium = user.get("premium_status", {})
 
     if not premium.get("is_premium"):
@@ -104,6 +99,15 @@ async def my_plan(client, message):
     remaining = expiry - int(time.time())
 
     if remaining <= 0:
+        # Expired, mark as non-premium
+        await user_data.update_one(
+            {"_id": user_id},
+            {"$set": {
+                "premium_status.is_premium": False,
+                "premium_status.plan": "",
+                "premium_status.expiry": 0
+            }}
+        )
         return await message.reply("❌ Your Premium expired.")
 
     hours = remaining // 3600
@@ -113,4 +117,4 @@ async def my_plan(client, message):
         f"💎 Premium Active\n\n"
         f"Plan: {premium.get('plan')}\n"
         f"Remaining: {hours}h {minutes}m"
-    )
+)
