@@ -17,16 +17,22 @@ default_verify = {
 
 def new_user(user_id):
     return {
-        '_id': user_id,
-        'verify_status': {
-            'is_verified': False,
-            'verified_time': 0,
-            'verify_token': "",
-            'link': "",                     # ✅ COMMA ADDED
-            'first_start': int(time.time()) # 🕒 3 HOURS TIMER START
+        "_id": user_id,
+
+        "verify_status": {
+            "is_verified": False,
+            "verified_time": 0,
+            "verify_token": "",
+            "first_start": int(time.time())
+        },
+
+        "premium_status": {
+            "is_premium": False,
+            "plan": "",
+            "expiry": 0
         }
     }
-
+    
 async def present_user(user_id: int):
     found = await user_data.find_one({'_id': user_id})
     return bool(found)
