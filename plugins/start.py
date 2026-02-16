@@ -107,7 +107,9 @@ async def start_command(client: Client, message: Message):
     # =====================================================
     # FILE REQUEST
     # =====================================================
-    if len(message.text) > 7 and (is_verified or not free_time_over):
+    premium_active = await is_premium(user_id)
+
+if len(message.text) > 7 and (premium_active or is_verified or not free_time_over):
         try:
             base64_string = message.text.split(" ", 1)[1]
         except:
