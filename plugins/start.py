@@ -80,10 +80,10 @@ async def start_command(client: Client, message: Message):
 
     premium = await is_premium_user(user_id)
 
-if premium:
-    free_time_over = False
-else:
-    free_time_over = (now - first_start) >= FREE_TIME  
+    if premium:
+        free_time_over = False
+    else:
+        free_time_over = (now - first_start) >= FREE_TIME  
 
     # ---------- VERIFY EXPIRE ----------  
     if is_verified and (now - verified_time) >= VERIFY_EXPIRE:  
