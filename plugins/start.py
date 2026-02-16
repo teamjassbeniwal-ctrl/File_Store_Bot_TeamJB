@@ -48,6 +48,10 @@ from database.database import (
     present_user
 )
 
+# 🔥 IMPORT PREMIUM CHECK
+from plugins.premium import is_premium
+
+
 # ================= CONFIG =================
 FREE_TIME = 3 * 60 * 60  # 3 HOURS
 # =========================================
@@ -82,6 +86,9 @@ async def start_command(client: Client, message: Message):
 
     free_time_over = (now - first_start) >= FREE_TIME
 
+    # ---------- PREMIUM CHECK ----------
+    premium_active = await is_premium(user_id)
+
     # ---------- VERIFY EXPIRE ----------
     if is_verified and (now - verified_time) >= VERIFY_EXPIRE:
         await update_verify_status(user_id, is_verified=False)
@@ -91,6 +98,11 @@ async def start_command(client: Client, message: Message):
     # VERIFY CALLBACK
     # =====================================================
     if message.text.startswith("/start verify_"):
+
+        # Premium never needs verification
+        if premium_active:
+            return await message.reply("💎 You are already Premium!")
+
         token = message.text.split("verify_", 1)[1]
 
         if verify_status.get("verify_token") != token:
@@ -104,12 +116,12 @@ async def start_command(client: Client, message: Message):
 
         return await message.reply("✅ Verification successful!\nAccess unlocked for 8 hours.")
 
+
     # =====================================================
     # FILE REQUEST
     # =====================================================
-    premium_active = await is_premium(user_id)
+    if len(message.text.split()) > 1 and (premium_active or is_verified or not free_time_over):
 
-if len(message.text) > 7 and (premium_active or is_verified or not free_time_over):
         try:
             base64_string = message.text.split(" ", 1)[1]
         except:
@@ -134,10 +146,11 @@ if len(message.text) > 7 and (premium_active or is_verified or not free_time_ove
         sent_msgs = []
 
         for msg in messages:
+
             caption = (
                 CUSTOM_CAPTION.format(
                     previouscaption=msg.caption.html if msg.caption else "",
-                    filename=msg.document.file_name
+                    filename=msg.document.file_name if msg.document else ""
                 )
                 if CUSTOM_CAPTION and msg.document
                 else (msg.caption.html if msg.caption else "")
@@ -155,20 +168,33 @@ if len(message.text) > 7 and (premium_active or is_verified or not free_time_ove
                 )
                 sent_msgs.append(sent)
                 await asyncio.sleep(0.5)
+
             except FloodWait as e:
-                await asyncio.sleep(e.x)
+                await asyncio.sleep(e.value)
+
             except Exception as e:
                 logger.error(e)
 
-        if AUTO_DELETE_TIME > 0 and sent_msgs:
+        # 🔥 Auto delete only for NON premium
+        if AUTO_DELETE_TIME > 0 and sent_msgs and not premium_active:
             info = await message.reply_text(AUTO_DELETE_MSG.format(time=AUTO_DELETE_TIME))
             asyncio.create_task(delete_file(sent_msgs, client, info))
+
         return
+
 
     # =====================================================
     # FREE / VERIFIED WELCOME
     # =====================================================
-    if is_verified or not free_time_over:
+    if premium_active:
+        badge = "💎 PREMIUM USER\n\n"
+    elif not free_time_over:
+        badge = "🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n"
+    else:
+        badge = ""
+
+    if premium_active or is_verified or not free_time_over:
+
         buttons = InlineKeyboardMarkup(
             [[
                 InlineKeyboardButton("ℹ️ About", callback_data="about"),
@@ -176,11 +202,9 @@ if len(message.text) > 7 and (premium_active or is_verified or not free_time_ove
             ]]
         )
 
-        text = "🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n" if not free_time_over else ""
-
         await message.reply_photo(
             photo=WELCOME_PIC,
-            caption=text + START_MSG.format(
+            caption=badge + START_MSG.format(
                 first=message.from_user.first_name,
                 last=message.from_user.last_name,
                 username="@" + message.from_user.username if message.from_user.username else "",
@@ -191,6 +215,7 @@ if len(message.text) > 7 and (premium_active or is_verified or not free_time_ove
             quote=True
         )
         return
+
 
     # =====================================================
     # FREE TIME OVER → VERIFY
@@ -212,32 +237,8 @@ if len(message.text) > 7 and (premium_active or is_verified or not free_time_ove
     ])
 
     await message.reply(
-        "⏰ Your **FREE 3 HOURS** are over.\n\n"
-        "🔒 Please verify to continue using the bot for **8 hours**.",
-        reply_markup=buttons,
-        quote=True
-    )
-
-
-# =========================================================
-# FORCE SUBSCRIBE (NOT JOINED)
-# =========================================================
-@Bot.on_message(filters.command("start") & filters.private)
-async def not_joined(client: Client, message: Message):
-
-    buttons = InlineKeyboardMarkup(
-        [[InlineKeyboardButton("🔔 Join Channel", url=client.invitelink)]]
-    )
-
-    await message.reply_photo(
-        photo=FORCE_PIC,
-        caption=FORCE_MSG.format(
-            first=message.from_user.first_name,
-            last=message.from_user.last_name,
-            username="@" + message.from_user.username if message.from_user.username else "",
-            mention=message.from_user.mention,
-            id=message.from_user.id
-        ),
+        "⏰ Your FREE access expired.\n\n"
+        "🔒 Please verify to unlock access for 8 hours.",
         reply_markup=buttons,
         quote=True
     )
