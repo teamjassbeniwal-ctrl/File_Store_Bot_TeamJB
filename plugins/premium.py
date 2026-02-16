@@ -107,25 +107,38 @@ async def remove_premium_cmd(client, message):
 async def my_plan(client, message):
 
     user_id = message.from_user.id
-    premium_check = await is_premium_user(user_id)
 
-    # ❌ Not Premium
-    if not premium_check:
-        return await message.reply("🆓 You are using FREE plan.")
-
-    # 🔹 Direct database se expire_time lo
     from database.database import user_data
     user = await user_data.find_one({'_id': user_id})
-    expire_time = user.get("premium_status", {}).get("expire_time", 0)
+
+    # If user not in database
+    if not user:
+        return await message.reply("🆓 You are using FREE plan.")
+
+    premium = user.get("premium_status")
+
+    # If premium data not exists
+    if not premium:
+        return await message.reply("🆓 You are using FREE plan.")
+
+    # If not premium
+    if not premium.get("is_premium", False):
+        return await message.reply("🆓 You are using FREE plan.")
+
+    expire_time = premium.get("expire_time")
+
+    # If expire_time missing or 0
+    if not expire_time or expire_time == 0:
+        return await message.reply("🆓 You are using FREE plan.")
 
     now = int(time.time())
 
-    # ❌ Expired
-    if expire_time != 0 and now > expire_time:
+    # If expired
+    if now >= expire_time:
         await remove_premium_user(user_id)
         return await message.reply("🆓 Your premium expired.")
 
-    # ✅ Active Premium
+    # If active
     remaining = expire_time - now
 
     days = remaining // 86400
@@ -136,7 +149,7 @@ async def my_plan(client, message):
     exp_time = datetime.fromtimestamp(expire_time).strftime("%I:%M:%S %p")
 
     await message.reply(
-f"""⚜️ ᴘʀᴇᴍɪᴜᴍ ᴜꜱᴇʀ ᴅᴀᴛᴀ :,
+f"""⚜️ ᴘʀᴇᴍɪᴜᴍ ᴜꜱᴇʀ ᴅᴀᴛᴀ :
 
 👤 ᴜꜱᴇʀ : {message.from_user.first_name}
 ⚡ ᴜꜱᴇʀ ɪᴅ : <code>{user_id}</code>
@@ -180,7 +193,6 @@ async def plans_cmd(client, message):
 
 ‼️ ᴀꜰᴛᴇʀ sᴇɴᴅɪɴɢ ᴀ sᴄʀᴇᴇɴsʜᴏᴛ ᴘʟᴇᴀsᴇ ɢɪᴠᴇ ᴍᴇ sᴏᴍᴇ ᴛɪᴍᴇ ᴛᴏ ᴀᴅᴅ ʏᴏᴜ ɪɴ ᴛʜᴇ ᴘʀᴇᴍɪᴜᴍ ᴠᴇʀsɪᴏɴ.
 
-Message here @Team_JB
 """
 
     buttons = InlineKeyboardMarkup(
