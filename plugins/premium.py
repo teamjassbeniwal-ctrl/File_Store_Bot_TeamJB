@@ -186,7 +186,7 @@ Message here @Team_JB
     buttons = InlineKeyboardMarkup(
         [
             [InlineKeyboardButton("📞 Contact Owner", url="https://t.me/TeamJB_bot")],
-            [InlineKeyboardButton("💳 Get QR Code", callback_data="show_qr")]
+            [InlineKeyboardButton("💳 Our Channel", url="https://t.me/teamjb1")]
         ]
     )
 
@@ -195,17 +195,3 @@ Message here @Team_JB
         caption=caption,
         reply_markup=buttons
     )
-
-
-# ================================
-# QR CALLBACK
-# ================================
-@Bot.on_callback_query(filters.regex("show_qr"))
-async def show_qr(client, callback_query):
-
-    await callback_query.message.reply_photo(
-        photo="https://i.ibb.co/PsqxZh2d/IMG-20251213-214014-515.jpg",
-        caption="📲 Scan this QR and send payment screenshot."
-    )
-
-    await callback_query.answer()
