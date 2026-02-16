@@ -1,4 +1,4 @@
-1.import time
+import time
 import motor.motor_asyncio
 from config import DB_URI, DB_NAME
 
