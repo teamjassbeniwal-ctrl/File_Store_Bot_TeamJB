@@ -259,12 +259,37 @@ async def broadcast(client: Client, message: Message):
 @Bot.on_message(filters.command("addpremium") & filters.user(ADMINS))
 async def give_premium(client: Client, message: Message):
     try:
-        user_id = int(message.text.split()[1])
-        duration = int(message.text.split()[2]) if len(message.text.split()) > 2 else 0
+        parts = message.text.split()
+        user_id = int(parts[1])
+        time_input = parts[2].lower()
+
+        # ---------- TIME CONVERT ----------
+        if time_input.endswith("d"):  # Days
+            days = int(time_input[:-1])
+            duration = days * 86400
+
+        elif time_input.endswith("m"):  # Months (30 days)
+            months = int(time_input[:-1])
+            duration = months * 30 * 86400
+
+        else:
+            return await message.reply("❌ Use format: 1d (day) or 1m (month)")
+
         await add_premium_user(user_id, duration)
-        await message.reply("✅ Premium Added Successfully!")
+
+        # Notify User
+        try:
+            await client.send_message(
+                chat_id=user_id,
+                text=f"💎 PREMIUM ACTIVATED!\n\n⏳ Duration: {time_input.upper()}\nEnjoy unlimited access 🚀"
+            )
+        except:
+            pass
+
+        await message.reply("✅ Premium Added Successfully & User Notified!")
+
     except:
-        await message.reply("Usage:\n/addpremium user_id seconds")
+        await message.reply("Usage:\n/addpremium user_id 1d\n/addpremium user_id 1m")
 
 @Bot.on_message(filters.command("removepremium") & filters.user(ADMINS))
 async def remove_premium(client: Client, message: Message):
