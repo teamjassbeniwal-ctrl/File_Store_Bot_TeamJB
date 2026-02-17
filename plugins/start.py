@@ -3,7 +3,7 @@ import logging
 import random
 import string
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from pyrogram import Client, filters
 from pyrogram.enums import ParseMode
@@ -49,19 +49,18 @@ from database.database import (
 )
 
 # ================= CONFIG =================
-FREE_TIME = 3 * 60 * 60  # 3 HOURS FREE for non-premium
+FREE_TIME = 3 * 60 * 60  # 3 HOURS free for non-premium
 # =========================================
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 # ==========================================================
 # START COMMAND (JOINED USERS)
 # ==========================================================
 @Bot.on_message(filters.command("start") & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
-    user_id = message.from_user.id  
+    user_id = message.from_user.id
     now = int(time.time())
 
     # ---------- ADD USER ----------
@@ -80,10 +79,13 @@ async def start_command(client: Client, message: Message):
     verified_time = verify_status.get("verified_time", 0)
 
     # ---------- CHECK PREMIUM ----------
-    premium_info = await is_premium_user(user_id)
+    premium_info = await is_premium_user(user_id)  # must return dict with {"expires_at": timestamp} or None
     if premium_info and "expires_at" in premium_info:
-        premium_expired = now >= premium_info["expires_at"]
-        free_time_over = premium_expired
+        expires_at = premium_info["expires_at"]
+        if now >= expires_at:
+            free_time_over = True
+        else:
+            free_time_over = False
     else:
         free_time_over = (now - first_start) >= FREE_TIME
 
@@ -110,7 +112,7 @@ async def start_command(client: Client, message: Message):
             reply_markup=buttons,
             quote=True
         )
-        return  # stop further processing here
+        return
 
     # ---------- VERIFY CALLBACK ----------
     if message.text.startswith("/start verify_"):
@@ -145,23 +147,16 @@ async def start_command(client: Client, message: Message):
 
         sent_msgs = []
         for msg in messages:
-            caption = (
-                CUSTOM_CAPTION.format(
-                    previouscaption=msg.caption.html if msg.caption else "",
-                    filename=msg.document.file_name
-                ) if CUSTOM_CAPTION and msg.document else (msg.caption.html if msg.caption else "")
-            )
+            caption = (CUSTOM_CAPTION.format(
+                            previouscaption=msg.caption.html if msg.caption else "",
+                            filename=msg.document.file_name)
+                       if CUSTOM_CAPTION and msg.document else (msg.caption.html if msg.caption else ""))
 
             reply_markup = msg.reply_markup if not DISABLE_CHANNEL_BUTTON else None
 
             try:
-                sent = await msg.copy(
-                    chat_id=user_id,
-                    caption=caption,
-                    parse_mode=ParseMode.HTML,
-                    reply_markup=reply_markup,
-                    protect_content=PROTECT_CONTENT
-                )
+                sent = await msg.copy(chat_id=user_id, caption=caption, parse_mode=ParseMode.HTML,
+                                      reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
                 sent_msgs.append(sent)
                 await asyncio.sleep(0.5)
             except FloodWait as e:
@@ -174,21 +169,23 @@ async def start_command(client: Client, message: Message):
             asyncio.create_task(delete_file(sent_msgs, client, info))
         return
 
-    # ---------- FREE / VERIFIED WELCOME ----------
+    # ---------- WELCOME MESSAGE ----------
     buttons = InlineKeyboardMarkup([
         [InlineKeyboardButton("ℹ️ About", callback_data="about"),
          InlineKeyboardButton("❌ Close", callback_data="close")]
     ])
 
-    text = ""
-    if not free_time_over:
-        text = "🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n"
-    elif premium_info and not premium_expired:
-        text = "💎 PREMIUM ACCESS ACTIVE\n\n"
+    # Premium expiry text
+    premium_text = ""
+    if premium_info and "expires_at" in premium_info and not free_time_over:
+        expiry = datetime.fromtimestamp(premium_info["expires_at"]).strftime("%d-%m-%Y %I:%M:%S %p")
+        premium_text = f"💎 PREMIUM ACCESS ACTIVE\n⏳ Expires: {expiry}\n\n"
+    elif not free_time_over:
+        premium_text = "🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n"
 
     await message.reply_photo(
         photo=WELCOME_PIC,
-        caption=text + START_MSG.format(
+        caption=premium_text + START_MSG.format(
             first=message.from_user.first_name,
             last=message.from_user.last_name,
             username="@" + message.from_user.username if message.from_user.username else "",
@@ -198,7 +195,6 @@ async def start_command(client: Client, message: Message):
         reply_markup=buttons,
         quote=True
     )
-
 
 # ==========================================================
 # FORCE SUBSCRIBE (NOT JOINED)
@@ -219,7 +215,6 @@ async def not_joined(client: Client, message: Message):
         quote=True
     )
 
-
 # ==========================================================
 # USERS COUNT
 # ==========================================================
@@ -227,7 +222,6 @@ async def not_joined(client: Client, message: Message):
 async def users_count(client: Client, message: Message):
     users = await full_userbase()
     await message.reply(f"👥 Total users: {len(users)}")
-
 
 # ==========================================================
 # BROADCAST
