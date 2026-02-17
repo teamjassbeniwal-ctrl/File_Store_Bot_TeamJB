@@ -26,9 +26,10 @@ from database.database import (
     add_user, del_user, full_userbase, present_user, is_premium_user
 )
 
-FREE_TIME = 3 * 60 * 60  # 3 HOURS FREE
+FREE_TIME = 3 * 60 * 60  # 3 hours free for new users
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 # ====================== START COMMAND ======================
 @Bot.on_message(filters.command("start") & filters.private & subscribed)
@@ -49,6 +50,8 @@ async def start_command(client: Client, message: Message):
     premium_info = await is_premium_user(user_id)
     is_premium = premium_info.get("is_premium") if premium_info else False
     expire_time = premium_info.get("expire_time") if premium_info else 0
+
+    # Free time check for new users
     free_time_over = (now - first_start) >= FREE_TIME if not is_premium else False
 
     # ---------- VERIFICATION EXPIRE ----------
@@ -66,7 +69,7 @@ async def start_command(client: Client, message: Message):
         await update_verify_status(user_id, is_verified=True, verified_time=now)
         buttons = InlineKeyboardMarkup([
             [InlineKeyboardButton("ℹ️ About", callback_data="about"),
-             InlineKeyboardButton("❌ Close", callback_data="close")]
+             InlineKeyboardButton("❌ Cancel", callback_data="close")]
         ])
         text = (
             f"✅ Verification successful!\nAccess unlocked for 8 hours.\n\n"
@@ -80,10 +83,15 @@ async def start_command(client: Client, message: Message):
     if is_premium:
         buttons = InlineKeyboardMarkup([
             [InlineKeyboardButton("ℹ️ About", callback_data="about"),
-             InlineKeyboardButton("❌ Close", callback_data="close")]
+             InlineKeyboardButton("❌ Cancel", callback_data="close")]
         ])
         expire_text = f"\n⌛️ Expiry: {datetime.fromtimestamp(expire_time).strftime('%d-%m-%Y %I:%M:%S %p')}" if expire_time else ""
-        text = f"👋 ʜᴇʏ {message.from_user.first_name},\nᴛʜᴀɴᴋ ʏᴏᴜ ꜰᴏʀ ᴘᴜʀᴄʜᴀꜱɪɴɢ ᴘʀᴇᴍɪᴜᴍ.\n✨ Enjoy your premium access!{expire_text}"
+        text = (
+            f"👋 ʜᴇʏ {message.from_user.first_name},\n"
+            f"ᴛʜᴀɴᴋ ʏᴏᴜ ꜰᴏʀ ᴘᴜʀᴄʜᴀꜱɪɴɢ ᴘʀᴇᴍɪᴜᴍ.\n"
+            f"Hello {message.from_user.first_name}\n\n"
+            "I can store private files in Specified Channel and other users can access it from special link."
+        )
         await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
         return
 
@@ -152,7 +160,7 @@ async def start_command(client: Client, message: Message):
     # ---------- FREE / VERIFIED WELCOME ----------
     buttons = InlineKeyboardMarkup([
         [InlineKeyboardButton("ℹ️ About", callback_data="about"),
-         InlineKeyboardButton("❌ Close", callback_data="close")]
+         InlineKeyboardButton("❌ Cancel", callback_data="close")]
     ])
     text = (
         f"🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n"
