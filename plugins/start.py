@@ -18,6 +18,7 @@ from config import (
     WELCOME_PIC,
     CUSTOM_CAPTION,
     VERIFY_EXPIRE,
+    VERIFIED_TIME,       # 8 hours for verified users
     SHORTLINK_API,
     SHORTLINK_URL,
     DISABLE_CHANNEL_BUTTON,
@@ -47,9 +48,9 @@ from database.database import (
 
 # ================= CONFIG =================
 FREE_TIME = 3 * 60 * 60  # 3 HOURS FREE
-VERIFIED_TIME = 8 * 60 * 60  # 8 HOURS VERIFIED
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 # ====================== START COMMAND ======================
 @Bot.on_message(filters.command("start") & filters.private & subscribed)
@@ -66,12 +67,11 @@ async def start_command(client: Client, message: Message):
     is_verified = verify_status.get("is_verified", False)
     verified_time = verify_status.get("verified_time", 0)
 
-    # ---------- PREMIUM CHECK ----------
     premium_info = await is_premium_user(user_id)
     is_premium = premium_info.get("is_premium") if premium_info else False
     expire_time = premium_info.get("expire_time") if premium_info else 0
 
-    # ---------- EXPIRE VERIFIED ACCESS ----------
+    # ---------- VERIFIED EXPIRE ----------
     if is_verified and (now - verified_time) >= VERIFIED_TIME:
         await update_verify_status(user_id, is_verified=False)
         is_verified = False
@@ -94,9 +94,9 @@ async def start_command(client: Client, message: Message):
             "I can store private files in Specified Channel and other users can access it from special link."
         )
         await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
-        return
+        return  # Stop further execution
 
-    # ---------- PREMIUM USER MESSAGE ----------
+    # ---------- PREMIUM USER ----------
     if is_premium:
         buttons = InlineKeyboardMarkup([
             [InlineKeyboardButton("ℹ️ About", callback_data="about"),
@@ -106,34 +106,29 @@ async def start_command(client: Client, message: Message):
         text = (
             f"👋 ʜᴇʏ {message.from_user.first_name},\n"
             f"ᴛʜᴀɴᴋ ʏᴏᴜ ꜰᴏʀ ᴘᴜʀᴄʜᴀꜱɪɴɢ ᴘʀᴇᴍɪᴜᴍ.\n"
-            f"Hello {message.from_user.first_name}\n\n"
-            f"I can store private files in Specified Channel and other users can access it from special link.{expire_text}"
+            f"Hello {message.from_user.first_name}\n"
+            "I can store private files in Specified Channel and other users can access it from special link."
+            f"{expire_text}"
         )
         await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
         return
 
-    # ---------- FREE TIME CHECK ----------
-    free_time_over = (now - first_start) >= FREE_TIME
-
-    # ---------- SHOW VERIFY LINK IF FREE EXPIRED ----------
-    if free_time_over and not is_verified:
-        token = "".join(random.choices(string.ascii_letters + string.digits, k=10))
-        await update_verify_status(user_id, verify_token=token, is_verified=False)
-        verify_link = f"https://t.me/{client.username}?start=verify_{token}"
-        short_link = await get_shortlink(SHORTLINK_URL, SHORTLINK_API, verify_link)
+    # ---------- VERIFIED USER ----------
+    if is_verified:
         buttons = InlineKeyboardMarkup([
-            [InlineKeyboardButton("🔓 Verify Now", url=short_link)],
-            [InlineKeyboardButton("📖 How to Use", url=TUT_VID)]
+            [InlineKeyboardButton("ℹ️ About", callback_data="about"),
+             InlineKeyboardButton("❌ Cancel", callback_data="close")]
         ])
-        await message.reply(
-            "⏰ Your FREE 3 HOURS are over.\n\n🔒 Please verify to continue using the bot for 8 hours.",
-            reply_markup=buttons,
-            quote=True
+        text = (
+            f"✅ Verification successful!\nAccess unlocked for 8 hours.\n\n"
+            f"Hello {message.from_user.first_name}\n\n"
+            "I can store private files in Specified Channel and other users can access it from special link."
         )
+        await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
         return
 
-    # ---------- FREE ACCESS MESSAGE ----------
-    if not free_time_over:
+    # ---------- FREE USER (WITHIN 3 HOURS) ----------
+    if (now - first_start) < FREE_TIME:
         buttons = InlineKeyboardMarkup([
             [InlineKeyboardButton("ℹ️ About", callback_data="about"),
              InlineKeyboardButton("❌ Cancel", callback_data="close")]
@@ -146,50 +141,21 @@ async def start_command(client: Client, message: Message):
         await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
         return
 
-    # ---------- FILE REQUEST (FREE OR VERIFIED) ----------
-    if len(message.text) > 7 and (is_verified or not free_time_over):
-        try:
-            base64_string = message.text.split(" ", 1)[1]
-            decoded = await decode(base64_string)
-        except:
-            return
-
-        parts = decoded.split("-")
-        if len(parts) == 3:
-            start = int(int(parts[1]) / abs(client.db_channel.id))
-            end = int(int(parts[2]) / abs(client.db_channel.id))
-            ids = range(start, end + 1)
-        elif len(parts) == 2:
-            ids = [int(int(parts[1]) / abs(client.db_channel.id))]
-        else:
-            return
-
-        wait = await message.reply("⏳ Processing...")
-        messages = await get_messages(client, ids)
-        await wait.delete()
-
-        sent_msgs = []
-        for msg in messages:
-            caption = (
-                CUSTOM_CAPTION.format(previouscaption=msg.caption.html if msg.caption else "",
-                                      filename=msg.document.file_name)
-                if CUSTOM_CAPTION and msg.document else (msg.caption.html if msg.caption else "")
-            )
-            reply_markup = msg.reply_markup if not DISABLE_CHANNEL_BUTTON else None
-            try:
-                sent = await msg.copy(chat_id=user_id, caption=caption, parse_mode=ParseMode.HTML,
-                                      reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-                sent_msgs.append(sent)
-                await asyncio.sleep(0.5)
-            except FloodWait as e:
-                await asyncio.sleep(e.x)
-            except Exception as e:
-                logger.error(e)
-
-        if AUTO_DELETE_TIME > 0 and sent_msgs:
-            info = await message.reply_text(AUTO_DELETE_MSG.format(time=AUTO_DELETE_TIME))
-            asyncio.create_task(delete_file(sent_msgs, client, info))
-        return
+    # ---------- FREE TIME OVER → SHOW VERIFY LINK ----------
+    token = "".join(random.choices(string.ascii_letters + string.digits, k=10))
+    await update_verify_status(user_id, verify_token=token, is_verified=False)
+    verify_link = f"https://t.me/{client.username}?start=verify_{token}"
+    short_link = await get_shortlink(SHORTLINK_URL, SHORTLINK_API, verify_link)
+    buttons = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🔓 Verify Now", url=short_link)],
+        [InlineKeyboardButton("📖 How to Use", url=TUT_VID)]
+    ])
+    await message.reply(
+        "⏰ Your FREE 3 HOURS are over.\n\n🔒 Please verify to continue using the bot for 8 hours.",
+        reply_markup=buttons,
+        quote=True
+    )
+    return
 
 
 # ====================== FORCE SUBSCRIBE ======================
