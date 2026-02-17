@@ -12,40 +12,20 @@ from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 
 from bot import Bot
 from config import (
-    ADMINS,
-    FORCE_MSG,
-    FORCE_PIC,
-    WELCOME_PIC,
-    CUSTOM_CAPTION,
-    VERIFY_EXPIRE,
-    SHORTLINK_API,
-    SHORTLINK_URL,
-    DISABLE_CHANNEL_BUTTON,
-    PROTECT_CONTENT,
-    AUTO_DELETE_TIME,
-    AUTO_DELETE_MSG,
-    TUT_VID
+    ADMINS, FORCE_MSG, FORCE_PIC, WELCOME_PIC, CUSTOM_CAPTION,
+    VERIFY_EXPIRE, SHORTLINK_API, SHORTLINK_URL, DISABLE_CHANNEL_BUTTON,
+    PROTECT_CONTENT, AUTO_DELETE_TIME, AUTO_DELETE_MSG, TUT_VID
 )
 
 from helper_func import (
-    subscribed,
-    decode,
-    get_messages,
-    get_shortlink,
-    get_verify_status,
-    update_verify_status,
-    delete_file
+    subscribed, decode, get_messages, get_shortlink,
+    get_verify_status, update_verify_status, delete_file
 )
 
 from database.database import (
-    add_user,
-    del_user,
-    full_userbase,
-    present_user,
-    is_premium_user
+    add_user, del_user, full_userbase, present_user, is_premium_user
 )
 
-# ================= CONFIG =================
 FREE_TIME = 3 * 60 * 60  # 3 HOURS FREE
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -83,10 +63,7 @@ async def start_command(client: Client, message: Message):
             await message.reply("❌ Invalid or expired token.\nUse /start again.")
             return
 
-        # Update verified status
         await update_verify_status(user_id, is_verified=True, verified_time=now)
-
-        # Send 8 hours verified access message
         buttons = InlineKeyboardMarkup([
             [InlineKeyboardButton("ℹ️ About", callback_data="about"),
              InlineKeyboardButton("❌ Close", callback_data="close")]
@@ -172,19 +149,19 @@ async def start_command(client: Client, message: Message):
             asyncio.create_task(delete_file(sent_msgs, client, info))
         return
 
-    # ---------- FREE ACCESS MESSAGE FOR NEW USERS ----------
-    if not is_premium and not is_verified and not free_time_over:
-        buttons = InlineKeyboardMarkup([
-            [InlineKeyboardButton("ℹ️ About", callback_data="about"),
-             InlineKeyboardButton("❌ Close", callback_data="close")]
-        ])
-        text = (
-            f"🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n"
-            f"Hello {message.from_user.first_name}\n\n"
-            "I can store private files in Specified Channel and other users can access it from special link."
-        )
-        await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
-        return
+    # ---------- FREE / VERIFIED WELCOME ----------
+    buttons = InlineKeyboardMarkup([
+        [InlineKeyboardButton("ℹ️ About", callback_data="about"),
+         InlineKeyboardButton("❌ Close", callback_data="close")]
+    ])
+    text = (
+        f"🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n"
+        f"Hello {message.from_user.first_name}\n\n"
+        "I can store private files in Specified Channel and other users can access it from special link."
+    )
+    await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
+    return
+
 
 # ====================== FORCE SUBSCRIBE ======================
 @Bot.on_message(filters.command("start") & filters.private)
@@ -203,11 +180,13 @@ async def not_joined(client: Client, message: Message):
         quote=True
     )
 
+
 # ====================== USERS COUNT ======================
 @Bot.on_message(filters.command("users") & filters.private & filters.user(ADMINS))
 async def users_count(client: Client, message: Message):
     users = await full_userbase()
     await message.reply(f"👥 Total users: {len(users)}")
+
 
 # ====================== BROADCAST ======================
 @Bot.on_message(filters.command("broadcast") & filters.private & filters.user(ADMINS))
