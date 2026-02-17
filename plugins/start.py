@@ -12,24 +12,44 @@ from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 
 from bot import Bot
 from config import (
-    ADMINS, FORCE_MSG, FORCE_PIC, WELCOME_PIC, CUSTOM_CAPTION,
-    VERIFY_EXPIRE, SHORTLINK_API, SHORTLINK_URL, DISABLE_CHANNEL_BUTTON,
-    PROTECT_CONTENT, AUTO_DELETE_TIME, AUTO_DELETE_MSG, TUT_VID
+    ADMINS,
+    FORCE_MSG,
+    FORCE_PIC,
+    WELCOME_PIC,
+    CUSTOM_CAPTION,
+    VERIFY_EXPIRE,
+    SHORTLINK_API,
+    SHORTLINK_URL,
+    DISABLE_CHANNEL_BUTTON,
+    PROTECT_CONTENT,
+    AUTO_DELETE_TIME,
+    AUTO_DELETE_MSG,
+    TUT_VID
 )
 
 from helper_func import (
-    subscribed, decode, get_messages, get_shortlink,
-    get_verify_status, update_verify_status, delete_file
+    subscribed,
+    decode,
+    get_messages,
+    get_shortlink,
+    get_verify_status,
+    update_verify_status,
+    delete_file
 )
 
 from database.database import (
-    add_user, del_user, full_userbase, present_user, is_premium_user
+    add_user,
+    del_user,
+    full_userbase,
+    present_user,
+    is_premium_user
 )
 
-FREE_TIME = 3 * 60 * 60  # 3 hours free for new users
+# ================= CONFIG =================
+FREE_TIME = 3 * 60 * 60  # 3 HOURS FREE
+VERIFIED_TIME = 8 * 60 * 60  # 8 HOURS VERIFIED
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 # ====================== START COMMAND ======================
 @Bot.on_message(filters.command("start") & filters.private & subscribed)
@@ -51,11 +71,8 @@ async def start_command(client: Client, message: Message):
     is_premium = premium_info.get("is_premium") if premium_info else False
     expire_time = premium_info.get("expire_time") if premium_info else 0
 
-    # Free time check for new users
-    free_time_over = (now - first_start) >= FREE_TIME if not is_premium else False
-
-    # ---------- VERIFICATION EXPIRE ----------
-    if is_verified and (now - verified_time) >= VERIFY_EXPIRE:
+    # ---------- EXPIRE VERIFIED ACCESS ----------
+    if is_verified and (now - verified_time) >= VERIFIED_TIME:
         await update_verify_status(user_id, is_verified=False)
         is_verified = False
 
@@ -90,12 +107,15 @@ async def start_command(client: Client, message: Message):
             f"👋 ʜᴇʏ {message.from_user.first_name},\n"
             f"ᴛʜᴀɴᴋ ʏᴏᴜ ꜰᴏʀ ᴘᴜʀᴄʜᴀꜱɪɴɢ ᴘʀᴇᴍɪᴜᴍ.\n"
             f"Hello {message.from_user.first_name}\n\n"
-            "I can store private files in Specified Channel and other users can access it from special link."
+            f"I can store private files in Specified Channel and other users can access it from special link.{expire_text}"
         )
         await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
         return
 
-    # ---------- FREE TIME OVER → SHOW VERIFY LINK ----------
+    # ---------- FREE TIME CHECK ----------
+    free_time_over = (now - first_start) >= FREE_TIME
+
+    # ---------- SHOW VERIFY LINK IF FREE EXPIRED ----------
     if free_time_over and not is_verified:
         token = "".join(random.choices(string.ascii_letters + string.digits, k=10))
         await update_verify_status(user_id, verify_token=token, is_verified=False)
@@ -110,6 +130,20 @@ async def start_command(client: Client, message: Message):
             reply_markup=buttons,
             quote=True
         )
+        return
+
+    # ---------- FREE ACCESS MESSAGE ----------
+    if not free_time_over:
+        buttons = InlineKeyboardMarkup([
+            [InlineKeyboardButton("ℹ️ About", callback_data="about"),
+             InlineKeyboardButton("❌ Cancel", callback_data="close")]
+        ])
+        text = (
+            f"🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n"
+            f"Hello {message.from_user.first_name}\n\n"
+            "I can store private files in Specified Channel and other users can access it from special link."
+        )
+        await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
         return
 
     # ---------- FILE REQUEST (FREE OR VERIFIED) ----------
@@ -156,19 +190,6 @@ async def start_command(client: Client, message: Message):
             info = await message.reply_text(AUTO_DELETE_MSG.format(time=AUTO_DELETE_TIME))
             asyncio.create_task(delete_file(sent_msgs, client, info))
         return
-
-    # ---------- FREE / VERIFIED WELCOME ----------
-    buttons = InlineKeyboardMarkup([
-        [InlineKeyboardButton("ℹ️ About", callback_data="about"),
-         InlineKeyboardButton("❌ Cancel", callback_data="close")]
-    ])
-    text = (
-        f"🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n"
-        f"Hello {message.from_user.first_name}\n\n"
-        "I can store private files in Specified Channel and other users can access it from special link."
-    )
-    await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
-    return
 
 
 # ====================== FORCE SUBSCRIBE ======================
