@@ -88,7 +88,8 @@ async def start_command(client: Client, message: Message):
     if message.text.startswith("/start verify_"):
         token = message.text.split("verify_", 1)[1]
         if verify_status.get("verify_token") != token:
-            return await message.reply("❌ Invalid or expired token.\nUse /start again.")
+            await message.reply("❌ Invalid or expired token.\nUse /start again.")
+            return
 
         await update_verify_status(user_id, is_verified=True, verified_time=now)
 
@@ -102,7 +103,8 @@ async def start_command(client: Client, message: Message):
             f"Hello {message.from_user.first_name}\n\n"
             "I can store private files in Specified Channel and other users can access it from special link."
         )
-        return await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
+        await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
+        return
 
     # ---------- PREMIUM USER MESSAGE ----------
     if is_premium:
@@ -114,61 +116,26 @@ async def start_command(client: Client, message: Message):
         if expire_time > 0:
             expire_dt = datetime.fromtimestamp(expire_time).strftime("%d-%m-%Y %I:%M:%S %p")
             expire_text = f"\n⌛️ Expiry: {expire_dt}"
+        text = f"👋 ʜᴇʏ {message.from_user.first_name},\nᴛʜᴀɴᴋ ʏᴏᴜ ꜰᴏʀ ᴘᴜʀᴄʜᴀꜱɪɴɢ ᴘʀᴇᴍɪᴜᴍ.\n✨ Enjoy your premium access!{expire_text}"
+        await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
+        return
+
+    # ---------- VERIFIED USER MESSAGE ----------
+    if is_verified:
+        buttons = InlineKeyboardMarkup([
+            [InlineKeyboardButton("ℹ️ About", callback_data="about"),
+             InlineKeyboardButton("❌ Close", callback_data="close")]
+        ])
         text = (
-            f"👋 ʜᴇʏ {message.from_user.first_name},\n"
-            "ᴛʜᴀɴᴋ ʏᴏᴜ ꜰᴏʀ ᴘᴜʀᴄʜᴀꜱɪɴɢ ᴘʀᴇᴍɪᴜᴍ.\n"
-            f"✨ Enjoy your premium access!{expire_text}"
+            f"✅ Verification successful!\nAccess unlocked for 8 hours.\n\n"
+            f"Hello {message.from_user.first_name}\n\n"
+            "I can store private files in Specified Channel and other users can access it from special link."
         )
         await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
         return
 
-    # ---------- FILE REQUEST (FREE OR VERIFIED) ----------
-    if len(message.text) > 7 and (is_verified or not free_time_over):
-        try:
-            base64_string = message.text.split(" ", 1)[1]
-            decoded = await decode(base64_string)
-        except:
-            return
-
-        parts = decoded.split("-")
-        if len(parts) == 3:
-            start = int(int(parts[1]) / abs(client.db_channel.id))
-            end = int(int(parts[2]) / abs(client.db_channel.id))
-            ids = range(start, end + 1)
-        elif len(parts) == 2:
-            ids = [int(int(parts[1]) / abs(client.db_channel.id))]
-        else:
-            return
-
-        wait = await message.reply("⏳ Processing...")
-        messages = await get_messages(client, ids)
-        await wait.delete()
-
-        sent_msgs = []
-        for msg in messages:
-            caption = (
-                CUSTOM_CAPTION.format(previouscaption=msg.caption.html if msg.caption else "",
-                                      filename=msg.document.file_name)
-                if CUSTOM_CAPTION and msg.document else (msg.caption.html if msg.caption else "")
-            )
-            reply_markup = msg.reply_markup if not DISABLE_CHANNEL_BUTTON else None
-            try:
-                sent = await msg.copy(chat_id=user_id, caption=caption, parse_mode=ParseMode.HTML,
-                                      reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-                sent_msgs.append(sent)
-                await asyncio.sleep(0.5)
-            except FloodWait as e:
-                await asyncio.sleep(e.x)
-            except Exception as e:
-                logger.error(e)
-
-        if AUTO_DELETE_TIME > 0 and sent_msgs:
-            info = await message.reply_text(AUTO_DELETE_MSG.format(time=AUTO_DELETE_TIME))
-            asyncio.create_task(delete_file(sent_msgs, client, info))
-        return
-
-    # ---------- FREE / VERIFIED WELCOME ----------
-    if is_verified or not free_time_over:
+    # ---------- FREE ACCESS MESSAGE ----------
+    if not free_time_over:
         buttons = InlineKeyboardMarkup([
             [InlineKeyboardButton("ℹ️ About", callback_data="about"),
              InlineKeyboardButton("❌ Close", callback_data="close")]
