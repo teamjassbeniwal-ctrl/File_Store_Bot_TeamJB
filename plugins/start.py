@@ -92,13 +92,22 @@ async def start_command(client: Client, message: Message):
     # =====================================================
     # VERIFY CALLBACK
     # =====================================================
-    if message.text.startswith("/start verify_"):
-        token = message.text.split("verify_", 1)[1]
-        if verify_status.get("verify_token") != token:
-            return await message.reply("❌ Invalid or expired token.\nUse /start again.")
-        await update_verify_status(user_id, is_verified=True, verified_time=now)
-        return await message.reply("✅ Verification successful!\nAccess unlocked for 8 hours.")
+    # =====================================================
+    # =====================================================
+# VERIFY CALLBACK
+# =====================================================
+if message.text.startswith("/start verify_"):
+    token = message.text.split("verify_", 1)[1]
+    if verify_status.get("verify_token") != token:
+        return await message.reply("❌ Invalid or expired token.\nUse /start again.")
 
+    await update_verify_status(user_id, is_verified=True, verified_time=now)
+
+    # After verification, show full access message
+    buttons = InlineKeyboardMarkup([[InlineKeyboardButton("ℹ️ About", callback_data="about"),
+                                     InlineKeyboardButton("❌ Close", callback_data="close")]])
+    text = f"✅ Verification successful!\nAccess unlocked for 8 hours.\n\nHello {message.from_user.first_name}\n\nI can store private files in Specified Channel and other users can access it from special link."
+    return await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
     # =====================================================
     # PREMIUM USER MESSAGE
     # =====================================================
