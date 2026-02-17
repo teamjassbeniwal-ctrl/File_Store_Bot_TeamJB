@@ -67,14 +67,9 @@ async def start_command(client: Client, message: Message):
 
     # ---------- PREMIUM CHECK ----------
     premium_info = await is_premium_user(user_id)
-    is_premium = False
-    expire_time = 0
-    if premium_info and premium_info.get("is_premium"):
-        is_premium = True
-        free_time_over = False
-        expire_time = premium_info.get("expire_time", 0)
-    else:
-        free_time_over = (now - first_start) >= FREE_TIME
+    is_premium = premium_info.get("is_premium") if premium_info else False
+    expire_time = premium_info.get("expire_time") if premium_info else 0
+    free_time_over = (now - first_start) >= FREE_TIME if not is_premium else False
 
     # ---------- VERIFICATION EXPIRE ----------
     if is_verified and (now - verified_time) >= VERIFY_EXPIRE:
@@ -99,18 +94,15 @@ async def start_command(client: Client, message: Message):
             "I can store private files in Specified Channel and other users can access it from special link."
         )
         await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
-        return
+        return  # Stop further execution
 
-    # ---------- PREMIUM MESSAGE ----------
+    # ---------- PREMIUM USER MESSAGE ----------
     if is_premium:
         buttons = InlineKeyboardMarkup([
             [InlineKeyboardButton("ℹ️ About", callback_data="about"),
              InlineKeyboardButton("❌ Close", callback_data="close")]
         ])
-        expire_text = ""
-        if expire_time > 0:
-            expire_dt = datetime.fromtimestamp(expire_time).strftime("%d-%m-%Y %I:%M:%S %p")
-            expire_text = f"\n⌛️ Expiry: {expire_dt}"
+        expire_text = f"\n⌛️ Expiry: {datetime.fromtimestamp(expire_time).strftime('%d-%m-%Y %I:%M:%S %p')}" if expire_time else ""
         text = f"👋 ʜᴇʏ {message.from_user.first_name},\nᴛʜᴀɴᴋ ʏᴏᴜ ꜰᴏʀ ᴘᴜʀᴄʜᴀꜱɪɴɢ ᴘʀᴇᴍɪᴜᴍ.\n✨ Enjoy your premium access!{expire_text}"
         await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
         return
