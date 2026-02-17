@@ -74,20 +74,26 @@ async def start_command(client: Client, message: Message):
         await update_verify_status(user_id, first_start=now)
         verify_status["first_start"] = now
 
-    first_start = verify_status.get("first_start")
+    first_start = verify_status.get("first_start", now)
     is_verified = verify_status.get("is_verified", False)
     verified_time = verify_status.get("verified_time", 0)
 
-    # ---------- CHECK PREMIUM ----------
-    premium_info = await is_premium_user(user_id)  # must return dict with {"expires_at": timestamp} or None
-    if premium_info and "expires_at" in premium_info:
-        expires_at = premium_info["expires_at"]
-        if now >= expires_at:
-            free_time_over = True
+    # ---------- PREMIUM CHECK ----------
+    premium_info = await is_premium_user(user_id)
+    free_time_over = (now - first_start) >= FREE_TIME  # default
+
+    if premium_info and isinstance(premium_info, dict):
+        expire_time = premium_info.get("expire_time", 0)
+        is_premium = premium_info.get("is_premium", False)
+
+        if is_premium:
+            # If expire_time = 0 → lifetime premium
+            if expire_time == 0 or expire_time > now:
+                free_time_over = False  # premium active
+            else:
+                free_time_over = True  # premium expired
         else:
-            free_time_over = False
-    else:
-        free_time_over = (now - first_start) >= FREE_TIME
+            free_time_over = (now - first_start) >= FREE_TIME
 
     # ---------- EXPIRE VERIFICATION ----------
     if is_verified and (now - verified_time) >= VERIFY_EXPIRE:
@@ -147,9 +153,8 @@ async def start_command(client: Client, message: Message):
 
         sent_msgs = []
         for msg in messages:
-            caption = (CUSTOM_CAPTION.format(
-                            previouscaption=msg.caption.html if msg.caption else "",
-                            filename=msg.document.file_name)
+            caption = (CUSTOM_CAPTION.format(previouscaption=msg.caption.html if msg.caption else "",
+                                            filename=msg.document.file_name)
                        if CUSTOM_CAPTION and msg.document else (msg.caption.html if msg.caption else ""))
 
             reply_markup = msg.reply_markup if not DISABLE_CHANNEL_BUTTON else None
@@ -169,32 +174,25 @@ async def start_command(client: Client, message: Message):
             asyncio.create_task(delete_file(sent_msgs, client, info))
         return
 
-    # ---------- WELCOME MESSAGE ----------
+    # ---------- FREE / VERIFIED WELCOME ----------
     buttons = InlineKeyboardMarkup([
         [InlineKeyboardButton("ℹ️ About", callback_data="about"),
          InlineKeyboardButton("❌ Close", callback_data="close")]
     ])
 
-    # Premium expiry text
-    premium_text = ""
-    if premium_info and "expires_at" in premium_info and not free_time_over:
-        expiry = datetime.fromtimestamp(premium_info["expires_at"]).strftime("%d-%m-%Y %I:%M:%S %p")
-        premium_text = f"💎 PREMIUM ACCESS ACTIVE\n⏳ Expires: {expiry}\n\n"
-    elif not free_time_over:
-        premium_text = "🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n"
+    text = "🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n" if not free_time_over else ""
 
-    await message.reply_photo(
-        photo=WELCOME_PIC,
-        caption=premium_text + START_MSG.format(
-            first=message.from_user.first_name,
-            last=message.from_user.last_name,
-            username="@" + message.from_user.username if message.from_user.username else "",
-            mention=message.from_user.mention,
-            id=user_id
-        ),
-        reply_markup=buttons,
-        quote=True
-    )
+    await message.reply_photo(photo=WELCOME_PIC,
+                              caption=text + START_MSG.format(
+                                  first=message.from_user.first_name,
+                                  last=message.from_user.last_name,
+                                  username="@" + message.from_user.username if message.from_user.username else "",
+                                  mention=message.from_user.mention,
+                                  id=user_id
+                              ),
+                              reply_markup=buttons,
+                              quote=True)
+
 
 # ==========================================================
 # FORCE SUBSCRIBE (NOT JOINED)
@@ -215,6 +213,7 @@ async def not_joined(client: Client, message: Message):
         quote=True
     )
 
+
 # ==========================================================
 # USERS COUNT
 # ==========================================================
@@ -222,6 +221,7 @@ async def not_joined(client: Client, message: Message):
 async def users_count(client: Client, message: Message):
     users = await full_userbase()
     await message.reply(f"👥 Total users: {len(users)}")
+
 
 # ==========================================================
 # BROADCAST
