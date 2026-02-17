@@ -49,7 +49,7 @@ from database.database import (
 )
 
 # ================= CONFIG =================
-FREE_TIME = 3 * 60 * 60  # 3 HOURS free for non-premium
+FREE_TIME = 3 * 60 * 60  # 3 HOURS
 # =========================================
 
 logging.basicConfig(level=logging.INFO)
@@ -74,70 +74,54 @@ async def start_command(client: Client, message: Message):
         await update_verify_status(user_id, first_start=now)
         verify_status["first_start"] = now
 
-    first_start = verify_status.get("first_start", now)
+    first_start = verify_status.get("first_start")
     is_verified = verify_status.get("is_verified", False)
     verified_time = verify_status.get("verified_time", 0)
 
-    # ---------- PREMIUM CHECK ----------
+    # ---------- PREMIUM / FREE TIME CHECK ----------
     premium_info = await is_premium_user(user_id)
-    free_time_over = (now - first_start) >= FREE_TIME  # default
+    free_time_over = (now - first_start) >= FREE_TIME  # default free time check
 
     if premium_info and isinstance(premium_info, dict):
-        expire_time = premium_info.get("expire_time", 0)
         is_premium = premium_info.get("is_premium", False)
+        expire_time = premium_info.get("expire_time", 0)
 
         if is_premium:
-            # If expire_time = 0 → lifetime premium
             if expire_time == 0 or expire_time > now:
-                free_time_over = False  # premium active
+                free_time_over = False  # premium active, ignore free time
             else:
-                free_time_over = True  # premium expired
-        else:
-            free_time_over = (now - first_start) >= FREE_TIME
+                # premium expired, fallback to free-time check
+                free_time_over = (now - first_start) >= FREE_TIME
 
-    # ---------- EXPIRE VERIFICATION ----------
+    # ---------- VERIFY EXPIRE ----------
     if is_verified and (now - verified_time) >= VERIFY_EXPIRE:
         await update_verify_status(user_id, is_verified=False)
         is_verified = False
 
-    # ---------- SEND VERIFY LINK IF FREE TIME OVER ----------
-    if free_time_over and not is_verified:
-        token = "".join(random.choices(string.ascii_letters + string.digits, k=10))
-        await update_verify_status(user_id, verify_token=token, is_verified=False)
-
-        verify_link = f"https://t.me/{client.username}?start=verify_{token}"
-        short_link = await get_shortlink(SHORTLINK_URL, SHORTLINK_API, verify_link)
-
-        buttons = InlineKeyboardMarkup([
-            [InlineKeyboardButton("🔓 Verify Now", url=short_link)],
-            [InlineKeyboardButton("📖 How to Use", url=TUT_VID)]
-        ])
-
-        await message.reply(
-            "⏰ Your FREE 3 HOURS are over.\n\n🔒 Please verify to continue using the bot for 8 hours.",
-            reply_markup=buttons,
-            quote=True
-        )
-        return
-
-    # ---------- VERIFY CALLBACK ----------
+    # =====================================================
+    # VERIFY CALLBACK
+    # =====================================================
     if message.text.startswith("/start verify_"):
         token = message.text.split("verify_", 1)[1]
+
         if verify_status.get("verify_token") != token:
             return await message.reply("❌ Invalid or expired token.\nUse /start again.")
 
         await update_verify_status(user_id, is_verified=True, verified_time=now)
         return await message.reply("✅ Verification successful!\nAccess unlocked for 8 hours.")
 
-    # ---------- FILE REQUEST ----------
-    if len(message.text) > 7:
+    # =====================================================
+    # FILE REQUEST
+    # =====================================================
+    if len(message.text) > 7 and (is_verified or not free_time_over):
         try:
             base64_string = message.text.split(" ", 1)[1]
-            decoded = await decode(base64_string)
         except:
             return
 
+        decoded = await decode(base64_string)
         parts = decoded.split("-")
+
         if len(parts) == 3:
             start = int(int(parts[1]) / abs(client.db_channel.id))
             end = int(int(parts[2]) / abs(client.db_channel.id))
@@ -152,16 +136,27 @@ async def start_command(client: Client, message: Message):
         await wait.delete()
 
         sent_msgs = []
+
         for msg in messages:
-            caption = (CUSTOM_CAPTION.format(previouscaption=msg.caption.html if msg.caption else "",
-                                            filename=msg.document.file_name)
-                       if CUSTOM_CAPTION and msg.document else (msg.caption.html if msg.caption else ""))
+            caption = (
+                CUSTOM_CAPTION.format(
+                    previouscaption=msg.caption.html if msg.caption else "",
+                    filename=msg.document.file_name
+                )
+                if CUSTOM_CAPTION and msg.document
+                else (msg.caption.html if msg.caption else "")
+            )
 
             reply_markup = msg.reply_markup if not DISABLE_CHANNEL_BUTTON else None
 
             try:
-                sent = await msg.copy(chat_id=user_id, caption=caption, parse_mode=ParseMode.HTML,
-                                      reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                sent = await msg.copy(
+                    chat_id=user_id,
+                    caption=caption,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=reply_markup,
+                    protect_content=PROTECT_CONTENT
+                )
                 sent_msgs.append(sent)
                 await asyncio.sleep(0.5)
             except FloodWait as e:
@@ -174,25 +169,50 @@ async def start_command(client: Client, message: Message):
             asyncio.create_task(delete_file(sent_msgs, client, info))
         return
 
-    # ---------- FREE / VERIFIED WELCOME ----------
+    # =====================================================
+    # FREE / VERIFIED WELCOME
+    # =====================================================
+    if is_verified or not free_time_over:
+        buttons = InlineKeyboardMarkup([[
+            InlineKeyboardButton("ℹ️ About", callback_data="about"),
+            InlineKeyboardButton("❌ Close", callback_data="close")
+        ]])
+
+        text = "🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n" if not free_time_over else ""
+
+        await message.reply_photo(
+            photo=WELCOME_PIC,
+            caption=text + START_MSG.format(
+                first=message.from_user.first_name,
+                last=message.from_user.last_name,
+                username="@" + message.from_user.username if message.from_user.username else "",
+                mention=message.from_user.mention,
+                id=user_id
+            ),
+            reply_markup=buttons,
+            quote=True
+        )
+        return
+
+    # =====================================================
+    # FREE TIME OVER → VERIFY
+    # =====================================================
+    token = "".join(random.choices(string.ascii_letters + string.digits, k=10))
+
+    await update_verify_status(user_id, verify_token=token, is_verified=False)
+
+    verify_link = f"https://t.me/{client.username}?start=verify_{token}"
+    short_link = await get_shortlink(SHORTLINK_URL, SHORTLINK_API, verify_link)
     buttons = InlineKeyboardMarkup([
-        [InlineKeyboardButton("ℹ️ About", callback_data="about"),
-         InlineKeyboardButton("❌ Close", callback_data="close")]
+        [InlineKeyboardButton("🔓 Verify Now", url=short_link)],
+        [InlineKeyboardButton("📖 How to Use", url=TUT_VID)]
     ])
 
-    text = "🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n" if not free_time_over else ""
-
-    await message.reply_photo(photo=WELCOME_PIC,
-                              caption=text + START_MSG.format(
-                                  first=message.from_user.first_name,
-                                  last=message.from_user.last_name,
-                                  username="@" + message.from_user.username if message.from_user.username else "",
-                                  mention=message.from_user.mention,
-                                  id=user_id
-                              ),
-                              reply_markup=buttons,
-                              quote=True)
-
+    await message.reply(
+        "⏰ Your FREE 3 HOURS are over.\n\n🔒 Please verify to continue using the bot for 8 hours.",
+        reply_markup=buttons,
+        quote=True
+    )
 
 # ==========================================================
 # FORCE SUBSCRIBE (NOT JOINED)
@@ -213,7 +233,6 @@ async def not_joined(client: Client, message: Message):
         quote=True
     )
 
-
 # ==========================================================
 # USERS COUNT
 # ==========================================================
@@ -221,7 +240,6 @@ async def not_joined(client: Client, message: Message):
 async def users_count(client: Client, message: Message):
     users = await full_userbase()
     await message.reply(f"👥 Total users: {len(users)}")
-
 
 # ==========================================================
 # BROADCAST
