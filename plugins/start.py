@@ -114,7 +114,11 @@ async def start_command(client: Client, message: Message):
         if expire_time > 0:
             expire_dt = datetime.fromtimestamp(expire_time).strftime("%d-%m-%Y %I:%M:%S %p")
             expire_text = f"\n⌛️ Expiry: {expire_dt}"
-        text = f"👋 ʜᴇʏ {message.from_user.first_name},\nᴛʜᴀɴᴋ ʏᴏᴜ ꜰᴏʀ ᴘᴜʀᴄʜᴀꜱɪɴɢ ᴘʀᴇᴍɪᴜᴍ.\n✨ Enjoy your premium access!{expire_text}"
+        text = (
+            f"👋 ʜᴇʏ {message.from_user.first_name},\n"
+            "ᴛʜᴀɴᴋ ʏᴏᴜ ꜰᴏʀ ᴘᴜʀᴄʜᴀꜱɪɴɢ ᴘʀᴇᴍɪᴜᴍ.\n"
+            f"✨ Enjoy your premium access!{expire_text}"
+        )
         await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
         return
 
