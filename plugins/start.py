@@ -3,7 +3,7 @@ import logging
 import random
 import string
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from pyrogram import Client, filters
 from pyrogram.enums import ParseMode
@@ -49,11 +49,12 @@ from database.database import (
 )
 
 # ================= CONFIG =================
-FREE_TIME = 3 * 60 * 60  # 3 HOURS
+FREE_TIME = 3 * 60 * 60  # 3 HOURS FREE for non-premium
 # =========================================
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 # ==========================================================
 # START COMMAND (JOINED USERS)
@@ -61,37 +62,34 @@ logger = logging.getLogger(__name__)
 @Bot.on_message(filters.command("start") & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
     user_id = message.from_user.id  
-    now = int(time.time())  
+    now = int(time.time())
 
     # ---------- ADD USER ----------
-    if not await present_user(user_id):  
-        await add_user(user_id)  
+    if not await present_user(user_id):
+        await add_user(user_id)
 
-    verify_status = await get_verify_status(user_id)  
+    verify_status = await get_verify_status(user_id)
 
     # ---------- FIRST START ----------
-    if "first_start" not in verify_status:  
-        await update_verify_status(user_id, first_start=now)  
-        verify_status["first_start"] = now  
+    if "first_start" not in verify_status:
+        await update_verify_status(user_id, first_start=now)
+        verify_status["first_start"] = now
 
-    first_start = verify_status.get("first_start")  
-    is_verified = verify_status.get("is_verified", False)  
-    verified_time = verify_status.get("verified_time", 0)  
+    first_start = verify_status.get("first_start")
+    is_verified = verify_status.get("is_verified", False)
+    verified_time = verify_status.get("verified_time", 0)
 
     # ---------- CHECK PREMIUM ----------
     premium_info = await is_premium_user(user_id)
-    if premium_info:  # premium_info should return expiration timestamp
-        premium_expired = now >= premium_info
-        if premium_expired:
-            free_time_over = True
-        else:
-            free_time_over = False
+    if premium_info and "expires_at" in premium_info:
+        premium_expired = now >= premium_info["expires_at"]
+        free_time_over = premium_expired
     else:
         free_time_over = (now - first_start) >= FREE_TIME
 
     # ---------- EXPIRE VERIFICATION ----------
-    if is_verified and (now - verified_time) >= VERIFY_EXPIRE:  
-        await update_verify_status(user_id, is_verified=False)  
+    if is_verified and (now - verified_time) >= VERIFY_EXPIRE:
+        await update_verify_status(user_id, is_verified=False)
         is_verified = False
 
     # ---------- SEND VERIFY LINK IF FREE TIME OVER ----------
@@ -115,126 +113,141 @@ async def start_command(client: Client, message: Message):
         return  # stop further processing here
 
     # ---------- VERIFY CALLBACK ----------
-    if message.text.startswith("/start verify_"):  
-        token = message.text.split("verify_", 1)[1]  
-        if verify_status.get("verify_token") != token:  
-            return await message.reply("❌ Invalid or expired token.\nUse /start again.")  
+    if message.text.startswith("/start verify_"):
+        token = message.text.split("verify_", 1)[1]
+        if verify_status.get("verify_token") != token:
+            return await message.reply("❌ Invalid or expired token.\nUse /start again.")
 
-        await update_verify_status(user_id, is_verified=True, verified_time=now)  
-        return await message.reply("✅ Verification successful!\nAccess unlocked for 8 hours.")  
+        await update_verify_status(user_id, is_verified=True, verified_time=now)
+        return await message.reply("✅ Verification successful!\nAccess unlocked for 8 hours.")
 
     # ---------- FILE REQUEST ----------
-    if len(message.text) > 7:  
-        try:  
-            base64_string = message.text.split(" ", 1)[1]  
-            decoded = await decode(base64_string)  
-        except:  
-            return  
+    if len(message.text) > 7:
+        try:
+            base64_string = message.text.split(" ", 1)[1]
+            decoded = await decode(base64_string)
+        except:
+            return
 
-        parts = decoded.split("-")  
+        parts = decoded.split("-")
         if len(parts) == 3:
-            start = int(int(parts[1]) / abs(client.db_channel.id))  
-            end = int(int(parts[2]) / abs(client.db_channel.id))  
-            ids = range(start, end + 1)  
+            start = int(int(parts[1]) / abs(client.db_channel.id))
+            end = int(int(parts[2]) / abs(client.db_channel.id))
+            ids = range(start, end + 1)
         elif len(parts) == 2:
-            ids = [int(int(parts[1]) / abs(client.db_channel.id))]  
+            ids = [int(int(parts[1]) / abs(client.db_channel.id))]
         else:
-            return  
+            return
 
-        wait = await message.reply("⏳ Processing...")  
-        messages = await get_messages(client, ids)  
-        await wait.delete()  
+        wait = await message.reply("⏳ Processing...")
+        messages = await get_messages(client, ids)
+        await wait.delete()
 
-        sent_msgs = []  
-        for msg in messages:  
-            caption = (CUSTOM_CAPTION.format(previouscaption=msg.caption.html if msg.caption else "", 
-                                            filename=msg.document.file_name)
-                       if CUSTOM_CAPTION and msg.document else (msg.caption.html if msg.caption else ""))  
+        sent_msgs = []
+        for msg in messages:
+            caption = (
+                CUSTOM_CAPTION.format(
+                    previouscaption=msg.caption.html if msg.caption else "",
+                    filename=msg.document.file_name
+                ) if CUSTOM_CAPTION and msg.document else (msg.caption.html if msg.caption else "")
+            )
 
-            reply_markup = msg.reply_markup if not DISABLE_CHANNEL_BUTTON else None  
+            reply_markup = msg.reply_markup if not DISABLE_CHANNEL_BUTTON else None
 
-            try:  
-                sent = await msg.copy(chat_id=user_id, caption=caption, parse_mode=ParseMode.HTML,
-                                      reply_markup=reply_markup, protect_content=PROTECT_CONTENT)  
-                sent_msgs.append(sent)  
-                await asyncio.sleep(0.5)  
-            except FloodWait as e:  
-                await asyncio.sleep(e.x)  
-            except Exception as e:  
-                logger.error(e)  
+            try:
+                sent = await msg.copy(
+                    chat_id=user_id,
+                    caption=caption,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=reply_markup,
+                    protect_content=PROTECT_CONTENT
+                )
+                sent_msgs.append(sent)
+                await asyncio.sleep(0.5)
+            except FloodWait as e:
+                await asyncio.sleep(e.x)
+            except Exception as e:
+                logger.error(e)
 
-        if AUTO_DELETE_TIME > 0 and sent_msgs:  
-            info = await message.reply_text(AUTO_DELETE_MSG.format(time=AUTO_DELETE_TIME))  
-            asyncio.create_task(delete_file(sent_msgs, client, info))  
-        return  
+        if AUTO_DELETE_TIME > 0 and sent_msgs:
+            info = await message.reply_text(AUTO_DELETE_MSG.format(time=AUTO_DELETE_TIME))
+            asyncio.create_task(delete_file(sent_msgs, client, info))
+        return
 
     # ---------- FREE / VERIFIED WELCOME ----------
-    buttons = InlineKeyboardMarkup([[  
-        InlineKeyboardButton("ℹ️ About", callback_data="about"),  
-        InlineKeyboardButton("❌ Close", callback_data="close")  
-    ]])  
+    buttons = InlineKeyboardMarkup([
+        [InlineKeyboardButton("ℹ️ About", callback_data="about"),
+         InlineKeyboardButton("❌ Close", callback_data="close")]
+    ])
 
-    text = "🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n" if not free_time_over else ""  
+    text = ""
+    if not free_time_over:
+        text = "🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n"
+    elif premium_info and not premium_expired:
+        text = "💎 PREMIUM ACCESS ACTIVE\n\n"
 
-    await message.reply_photo(photo=WELCOME_PIC,
-                              caption=text + START_MSG.format(
-                                  first=message.from_user.first_name,
-                                  last=message.from_user.last_name,
-                                  username="@" + message.from_user.username if message.from_user.username else "",
-                                  mention=message.from_user.mention,
-                                  id=user_id
-                              ),
-                              reply_markup=buttons,
-                              quote=True)
+    await message.reply_photo(
+        photo=WELCOME_PIC,
+        caption=text + START_MSG.format(
+            first=message.from_user.first_name,
+            last=message.from_user.last_name,
+            username="@" + message.from_user.username if message.from_user.username else "",
+            mention=message.from_user.mention,
+            id=user_id
+        ),
+        reply_markup=buttons,
+        quote=True
+    )
+
+
 # ==========================================================
 # FORCE SUBSCRIBE (NOT JOINED)
 # ==========================================================
-
 @Bot.on_message(filters.command("start") & filters.private)
 async def not_joined(client: Client, message: Message):
-    buttons = InlineKeyboardMarkup([[InlineKeyboardButton("🔔 Join Channel", url=client.invitelink)]])  
-    await message.reply_photo(  
-        photo=FORCE_PIC,  
-        caption=FORCE_MSG.format(  
-            first=message.from_user.first_name,  
-            last=message.from_user.last_name,  
-            username="@" + message.from_user.username if message.from_user.username else "",  
-            mention=message.from_user.mention,  
-            id=message.from_user.id  
-        ),  
-        reply_markup=buttons,  
-        quote=True  
+    buttons = InlineKeyboardMarkup([[InlineKeyboardButton("🔔 Join Channel", url=client.invitelink)]])
+    await message.reply_photo(
+        photo=FORCE_PIC,
+        caption=FORCE_MSG.format(
+            first=message.from_user.first_name,
+            last=message.from_user.last_name,
+            username="@" + message.from_user.username if message.from_user.username else "",
+            mention=message.from_user.mention,
+            id=message.from_user.id
+        ),
+        reply_markup=buttons,
+        quote=True
     )
+
 
 # ==========================================================
 # USERS COUNT
 # ==========================================================
-
 @Bot.on_message(filters.command("users") & filters.private & filters.user(ADMINS))
 async def users_count(client: Client, message: Message):
     users = await full_userbase()
     await message.reply(f"👥 Total users: {len(users)}")
 
+
 # ==========================================================
 # BROADCAST
 # ==========================================================
-
 @Bot.on_message(filters.command("broadcast") & filters.private & filters.user(ADMINS))
 async def broadcast(client: Client, message: Message):
-    if not message.reply_to_message:  
-        return await message.reply("Reply to a message to broadcast.")  
+    if not message.reply_to_message:
+        return await message.reply("Reply to a message to broadcast.")
 
-    users = await full_userbase()  
-    success = failed = 0  
+    users = await full_userbase()
+    success = failed = 0
 
-    for user_id in users:  
-        try:  
-            await message.reply_to_message.copy(user_id)  
-            success += 1  
-        except (UserIsBlocked, InputUserDeactivated):  
-            await del_user(user_id)  
-            failed += 1  
-        except:  
-            failed += 1  
+    for user_id in users:
+        try:
+            await message.reply_to_message.copy(user_id)
+            success += 1
+        except (UserIsBlocked, InputUserDeactivated):
+            await del_user(user_id)
+            failed += 1
+        except:
+            failed += 1
 
     await message.reply(f"✅ Broadcast complete\n\nSuccess: {success}\nFailed: {failed}")
