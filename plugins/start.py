@@ -48,17 +48,12 @@ from database.database import (
     remove_premium_user
 )
 
-# ================= CONFIG =================
 FREE_TIME = 3 * 60 * 60  # 3 HOURS
-# =========================================
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ==========================================================
-# START COMMAND (JOINED USERS)
-# ==========================================================
 
+# ====================== START COMMAND ======================
 @Bot.on_message(filters.command("start") & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
     user_id = message.from_user.id
@@ -89,31 +84,32 @@ async def start_command(client: Client, message: Message):
         await update_verify_status(user_id, is_verified=False)
         is_verified = False
 
-    # =====================================================
-    # VERIFY CALLBACK
-    # =====================================================
-    # =====================================================
-    # =====================================================
-# VERIFY CALLBACK
-# =====================================================
-if message.text.startswith("/start verify_"):
-    token = message.text.split("verify_", 1)[1]
-    if verify_status.get("verify_token") != token:
-        return await message.reply("❌ Invalid or expired token.\nUse /start again.")
+    # ---------- VERIFY TOKEN ----------
+    if message.text.startswith("/start verify_"):
+        token = message.text.split("verify_", 1)[1]
+        if verify_status.get("verify_token") != token:
+            return await message.reply("❌ Invalid or expired token.\nUse /start again.")
 
-    await update_verify_status(user_id, is_verified=True, verified_time=now)
+        await update_verify_status(user_id, is_verified=True, verified_time=now)
 
-    # After verification, show full access message
-    buttons = InlineKeyboardMarkup([[InlineKeyboardButton("ℹ️ About", callback_data="about"),
-                                     InlineKeyboardButton("❌ Close", callback_data="close")]])
-    text = f"✅ Verification successful!\nAccess unlocked for 8 hours.\n\nHello {message.from_user.first_name}\n\nI can store private files in Specified Channel and other users can access it from special link."
-    return await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
-    # =====================================================
-    # PREMIUM USER MESSAGE
-    # =====================================================
+        # After verification, show full access message
+        buttons = InlineKeyboardMarkup([
+            [InlineKeyboardButton("ℹ️ About", callback_data="about"),
+             InlineKeyboardButton("❌ Close", callback_data="close")]
+        ])
+        text = (
+            f"✅ Verification successful!\nAccess unlocked for 8 hours.\n\n"
+            f"Hello {message.from_user.first_name}\n\n"
+            "I can store private files in Specified Channel and other users can access it from special link."
+        )
+        return await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
+
+    # ---------- PREMIUM USER MESSAGE ----------
     if is_premium:
-        buttons = InlineKeyboardMarkup([[InlineKeyboardButton("ℹ️ About", callback_data="about"),
-                                         InlineKeyboardButton("❌ Close", callback_data="close")]])
+        buttons = InlineKeyboardMarkup([
+            [InlineKeyboardButton("ℹ️ About", callback_data="about"),
+             InlineKeyboardButton("❌ Close", callback_data="close")]
+        ])
         expire_text = ""
         if expire_time > 0:
             expire_dt = datetime.fromtimestamp(expire_time).strftime("%d-%m-%Y %I:%M:%S %p")
@@ -122,9 +118,7 @@ if message.text.startswith("/start verify_"):
         await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
         return
 
-    # =====================================================
-    # FILE REQUEST (FREE OR VERIFIED)
-    # =====================================================
+    # ---------- FILE REQUEST (FREE OR VERIFIED) ----------
     if len(message.text) > 7 and (is_verified or not free_time_over):
         try:
             base64_string = message.text.split(" ", 1)[1]
@@ -148,9 +142,11 @@ if message.text.startswith("/start verify_"):
 
         sent_msgs = []
         for msg in messages:
-            caption = (CUSTOM_CAPTION.format(previouscaption=msg.caption.html if msg.caption else "",
-                                             filename=msg.document.file_name)
-                       if CUSTOM_CAPTION and msg.document else (msg.caption.html if msg.caption else ""))
+            caption = (
+                CUSTOM_CAPTION.format(previouscaption=msg.caption.html if msg.caption else "",
+                                      filename=msg.document.file_name)
+                if CUSTOM_CAPTION and msg.document else (msg.caption.html if msg.caption else "")
+            )
             reply_markup = msg.reply_markup if not DISABLE_CHANNEL_BUTTON else None
             try:
                 sent = await msg.copy(chat_id=user_id, caption=caption, parse_mode=ParseMode.HTML,
@@ -167,20 +163,21 @@ if message.text.startswith("/start verify_"):
             asyncio.create_task(delete_file(sent_msgs, client, info))
         return
 
-    # =====================================================
-    # FREE / VERIFIED WELCOME
-    # =====================================================
+    # ---------- FREE / VERIFIED WELCOME ----------
     if is_verified or not free_time_over:
-        buttons = InlineKeyboardMarkup([[InlineKeyboardButton("ℹ️ About", callback_data="about"),
-                                         InlineKeyboardButton("❌ Close", callback_data="close")]])
-        text = "🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n"
-        text += f"Hello {message.from_user.first_name}\n\nI can store private files in Specified Channel and other users can access it from special link."
+        buttons = InlineKeyboardMarkup([
+            [InlineKeyboardButton("ℹ️ About", callback_data="about"),
+             InlineKeyboardButton("❌ Close", callback_data="close")]
+        ])
+        text = (
+            f"🆓 FREE ACCESS ACTIVE (3 HOURS)\n\n"
+            f"Hello {message.from_user.first_name}\n\n"
+            "I can store private files in Specified Channel and other users can access it from special link."
+        )
         await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
         return
 
-    # =====================================================
-    # FREE TIME OVER → SHOW VERIFY LINK
-    # =====================================================
+    # ---------- FREE TIME OVER → SHOW VERIFY LINK ----------
     token = "".join(random.choices(string.ascii_letters + string.digits, k=10))
     await update_verify_status(user_id, verify_token=token, is_verified=False)
     verify_link = f"https://t.me/{client.username}?start=verify_{token}"
@@ -195,9 +192,8 @@ if message.text.startswith("/start verify_"):
         quote=True
     )
 
-# ==========================================================
-# FORCE SUBSCRIBE (NOT JOINED)
-# ==========================================================
+
+# ====================== FORCE SUBSCRIBE ======================
 @Bot.on_message(filters.command("start") & filters.private)
 async def not_joined(client: Client, message: Message):
     buttons = InlineKeyboardMarkup([[InlineKeyboardButton("🔔 Join Channel", url=client.invitelink)]])
@@ -214,17 +210,15 @@ async def not_joined(client: Client, message: Message):
         quote=True
     )
 
-# ==========================================================
-# USERS COUNT
-# ==========================================================
+
+# ====================== USERS COUNT ======================
 @Bot.on_message(filters.command("users") & filters.private & filters.user(ADMINS))
 async def users_count(client: Client, message: Message):
     users = await full_userbase()
     await message.reply(f"👥 Total users: {len(users)}")
 
-# ==========================================================
-# BROADCAST
-# ==========================================================
+
+# ====================== BROADCAST ======================
 @Bot.on_message(filters.command("broadcast") & filters.private & filters.user(ADMINS))
 async def broadcast(client: Client, message: Message):
     if not message.reply_to_message:
