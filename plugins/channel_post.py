@@ -23,6 +23,7 @@ from helper_func import encode
         'addpremium',
         'removepremium',
         'myplan',
+        'id',
         'plans'
     ])
     )
