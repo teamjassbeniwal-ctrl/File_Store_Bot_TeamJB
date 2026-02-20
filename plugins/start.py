@@ -117,33 +117,32 @@ async def start_command(client: Client, message: Message):
     # =========================================================
     # ================= PREMIUM USER ==========================
     # =========================================================
-    if is_premium:
-        buttons = InlineKeyboardMarkup([
-            [InlineKeyboardButton("ℹ️ About", callback_data="about"),
-             InlineKeyboardButton("❌ Cancel", callback_data="close")]
-        ])
+    if is_premium and (not message.command or len(message.command) == 1):
+    buttons = InlineKeyboardMarkup([
+        [InlineKeyboardButton("ℹ️ About", callback_data="about"),
+         InlineKeyboardButton("❌ Cancel", callback_data="close")]
+    ])
 
-        expire_text = (
-            f"\n⌛ Expiry: "
-            f"{datetime.fromtimestamp(expire_time).strftime('%d-%m-%Y %I:%M:%S %p')}"
-            if expire_time else ""
-        )
+    expire_text = (
+        f"\n⌛ Expiry: "
+        f"{datetime.fromtimestamp(expire_time).strftime('%d-%m-%Y %I:%M:%S %p')}"
+        if expire_time else ""
+    )
 
-        text = (
-            f"👋 Hey {message.from_user.first_name},\n"
-            f"✨ Thank you for purchasing Premium!{expire_text}\n\n"
-            f"{START_MSG.format(first=message.from_user.first_name)}"
-        )
+    text = (
+        f"👋 Hey {message.from_user.first_name},\n"
+        f"✨ Thank you for purchasing Premium!{expire_text}\n\n"
+        f"{START_MSG.format(first=message.from_user.first_name)}"
+    )
 
-        await message.reply_photo(
-            photo=WELCOME_PIC,
-            caption=text,
-            reply_markup=buttons,
-            quote=True
-        )
-        return
-
-    # =========================================================
+    await message.reply_photo(
+        photo=WELCOME_PIC,
+        caption=text,
+        reply_markup=buttons,
+        quote=True
+    )
+    return
+    # ========================================================
     # ================= FREE TIME OVER ========================
     # =========================================================
     if free_time_over and not is_verified:
