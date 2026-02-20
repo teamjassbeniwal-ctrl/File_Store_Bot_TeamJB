@@ -115,9 +115,10 @@ async def start_command(client: Client, message: Message):
         return
 
     # =========================================================
-    # ================= PREMIUM USER ==========================
-    # =========================================================
-    if is_premium and (not message.command or len(message.command) == 1):
+# ================= PREMIUM USER ==========================
+# =========================================================
+if is_premium and (not message.command or len(message.command) == 1):
+
     buttons = InlineKeyboardMarkup([
         [InlineKeyboardButton("ℹ️ About", callback_data="about"),
          InlineKeyboardButton("❌ Cancel", callback_data="close")]
