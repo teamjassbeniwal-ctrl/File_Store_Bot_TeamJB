@@ -167,7 +167,23 @@ async def start_command(client: Client, message: Message):
             asyncio.create_task(delete_file(sent_msgs, client, info))
         return
 
-    # ---------- NEW USER / FREE ACCESS WELCOME ----------
+     # ---------- VERIFIED USER WELCOME ----------
+if is_verified:
+    buttons = InlineKeyboardMarkup([
+        [InlineKeyboardButton("ℹ️ About", callback_data="about"),
+         InlineKeyboardButton("❌ Cancel", callback_data="close")]
+    ])
+    text = (
+        f"🔓 VERIFIED ACCESS ACTIVE (8 HOURS)\n\n"
+        f"Hello {message.from_user.first_name}\n\n"
+        "I can store private files in Specified Channel and other users can access it from special link."
+    )
+    await message.reply_photo(photo=WELCOME_PIC, caption=text, reply_markup=buttons, quote=True)
+    return
+
+
+# ---------- NEW USER / FREE ACCESS WELCOME ----------
+if not free_time_over:
     buttons = InlineKeyboardMarkup([
         [InlineKeyboardButton("ℹ️ About", callback_data="about"),
          InlineKeyboardButton("❌ Cancel", callback_data="close")]
