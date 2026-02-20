@@ -174,7 +174,7 @@ async def start_command(client: Client, message: Message):
     # =========================================================
     # ================= FILE REQUEST ==========================
     # =========================================================
-    if len(message.text.split()) > 1:
+    if message.command and len(message.command) > 1:
         try:
             base64_string = message.text.split(" ", 1)[1]
             decoded = await decode(base64_string)
