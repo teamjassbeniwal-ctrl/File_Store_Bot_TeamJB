@@ -71,17 +71,23 @@ PROTECT_CONTENT = True if os.environ.get('PROTECT_CONTENT', "False") == "True" e
 AUTO_DELETE_TIME = int(os.getenv("AUTO_DELETE_TIME", "150"))
 AUTO_DELETE_MSG = os.environ.get(
     "AUTO_DELETE_MSG",
-    "❗❗❗ IMPORTANT ❗❗❗\n\n"
-    "THIS MESSAGE WILL BE DELETED IN {time} ⏳ (DUE TO COPYRIGHT ISSUES).\n\n"
-    "PLEASE FORWARD THIS MESSAGE TO YOUR SAVED MESSAGES OR ANY PRIVATE CHAT TO AVOID LOSING."
+    "<blockquote>❗❗❗ <b>IMPORTANT</b> ❗❗❗</blockquote>\n\n"
+    "<blockquote>"
+    "THIS MESSAGE WILL BE DELETED IN <b>10 MINUTES</b> ⏳\n"
+    "(DUE TO COPYRIGHT ISSUES).\n\n"
+    "PLEASE FORWARD THIS MESSAGE TO YOUR SAVED MESSAGES\n"
+    "OR ANY PRIVATE CHAT TO AVOID LOSING."
+    "</blockquote>"
 )
+
 AUTO_DEL_SUCCESS_MSG = os.environ.get(
     "AUTO_DEL_SUCCESS_MSG",
-    "❗❗❗ DELETION COMPLETED ❗❗❗\n\n"
-    "━━━━━━━━━━━━━━━━━━━━━━\n"
-    "🗑️ Your file has been successfully deleted.\n\n"
+    "<blockquote>❗❗❗ <b>DELETION COMPLETED</b> ❗❗❗</blockquote>\n\n"
+    "<blockquote>"
+    "🗑️ <b>Your file has been successfully deleted.</b>\n\n"
     "✨ Thank you for using our service.\n"
     "💖 We appreciate your support!"
+    "</blockquote>"
 )
 
 #Set true if you want Disable your Channel Posts Share button
