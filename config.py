@@ -73,8 +73,8 @@ AUTO_DELETE_MSG = os.environ.get(
     "AUTO_DELETE_MSG",
     "<blockquote>❗❗❗ <b>IMPORTANT</b> ❗❗❗</blockquote>\n\n"
     "<blockquote>"
-    "THIS MESSAGE WILL BE DELETED IN <b>1 MINUTES</b> ⏳\n"
-    "(DUE TO COPYRIGHT ISSUES).\n\n"
+    "THIS MESSAGE WILL BE DELETED IN <b><u>{time} MINUTES</u></b> ⏳\n"
+    "<i>(DUE TO COPYRIGHT ISSUES).</i>\n\n"
     "PLEASE FORWARD THIS MESSAGE TO YOUR SAVED MESSAGES\n"
     "OR ANY PRIVATE CHAT TO AVOID LOSING."
     "</blockquote>"
