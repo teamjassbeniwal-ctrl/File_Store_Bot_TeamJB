@@ -227,10 +227,11 @@ async def start_command(client: Client, message: Message):
                 logger.error(e)
 
         if AUTO_DELETE_TIME > 0 and sent_msgs:
-            info = await message.reply_text(
-                AUTO_DELETE_MSG.format(time=AUTO_DELETE_TIME)
-            )
-            asyncio.create_task(delete_file(sent_msgs, client, info))
+    info = await message.reply_text(
+        AUTO_DELETE_MSG.format(time=AUTO_DELETE_TIME),
+        parse_mode=ParseMode.HTML
+    )
+    asyncio.create_task(delete_file(sent_msgs, client, info))
 
         return
 
