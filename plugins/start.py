@@ -25,6 +25,7 @@ from config import (
     PROTECT_CONTENT,
     AUTO_DELETE_TIME,
     AUTO_DELETE_MSG,
+    AUTO_DEL_SUCCESS_MSG,
     TUT_VID,
     FREE_TIME
 )
