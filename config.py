@@ -68,12 +68,12 @@ PROTECT_CONTENT = True if os.environ.get('PROTECT_CONTENT', "False") == "True" e
 
 
 # Auto delete time in seconds.
-AUTO_DELETE_TIME = int(os.getenv("AUTO_DELETE_TIME", "150"))
+AUTO_DELETE_TIME = int(os.getenv("AUTO_DELETE_TIME", "60"))
 AUTO_DELETE_MSG = os.environ.get(
     "AUTO_DELETE_MSG",
     "<blockquote>❗❗❗ <b>IMPORTANT</b> ❗❗❗</blockquote>\n\n"
     "<blockquote>"
-    "THIS MESSAGE WILL BE DELETED IN <b>10 MINUTES</b> ⏳\n"
+    "THIS MESSAGE WILL BE DELETED IN <b>1 MINUTES</b> ⏳\n"
     "(DUE TO COPYRIGHT ISSUES).\n\n"
     "PLEASE FORWARD THIS MESSAGE TO YOUR SAVED MESSAGES\n"
     "OR ANY PRIVATE CHAT TO AVOID LOSING."
