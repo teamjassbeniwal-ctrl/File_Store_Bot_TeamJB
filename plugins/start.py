@@ -229,8 +229,7 @@ async def start_command(client: Client, message: Message):
 
         if AUTO_DELETE_TIME > 0 and sent_msgs:
             info = await message.reply_text(
-                AUTO_DELETE_MSG.format(time=AUTO_DELETE_TIME),
-                parse_mode=ParseMode.MARKDOWN_V2
+                AUTO_DELETE_MSG.format(time=AUTO_DELETE_TIME)
             )
             asyncio.create_task(delete_file(sent_msgs, client, info))
         return
