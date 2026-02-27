@@ -157,7 +157,8 @@ async def delete_file(messages, client, process):
             await asyncio.sleep(e.x)
             print(f"The attempt to delete the media {msg.id} was unsuccessful: {e}")
 
-    await process.edit_text(AUTO_DEL_SUCCESS_MSG)
+    await process.edit_text(AUTO_DEL_SUCCESS_MSG),
+    parse_mode=ParseMode.HTML
 
 
 subscribed = filters.create(is_subscribed)
