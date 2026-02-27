@@ -67,9 +67,22 @@ python3 main.py
 ```
 start - start the bot or get posts
 
+id - get your Telegram User ID and account details
+
+myplan - check your current subscription plan and expiry date
+
+plans - view available premium plans and pricing
+
+👑 Admin Commands
+⚠️ These commands are restricted to bot administrators only.
+
 batch - create link for more than one posts
 
 genlink - create link for one post
+
+addpremium - add user to premium.
+
+removepremium - remove user from premium.
 
 users - view bot statistics
 
