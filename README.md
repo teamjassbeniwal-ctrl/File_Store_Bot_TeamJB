@@ -105,7 +105,7 @@ stats - checking your bot uptime
 * `FORCE_SUB_MESSAGE`Optional:Force sub message of bot, use HTML and Fillings
 * `FORCE_SUB_CHANNEL` Optional: ForceSub Channel ID, leave 0 if you want disable force sub
 * `PROTECT_CONTENT` Optional: True if you need to prevent files from forwarding
-
+* `AUTO_DELETE_TIME` Optional: True Delete time in seconds
 ### Extra Variables
 
 * `CUSTOM_CAPTION` put your Custom caption text if you want Setup Custom Caption, you can use HTML for formatting (only for documents)
@@ -120,8 +120,18 @@ stats - checking your bot uptime
 * `SHORTLINK_API` = Your shortner API (ex. "PUIAQBIFrydvLhIzAOeGV8yZppu2")
 * `VERIFY_EXPIRE` = ( ex. 86400)) # Add time in seconds
 
-
+###👑 Premium Variables
+Premium System Variables
+PREMIUM_TEXT = Custom message sent when user successfully gets premium
+( ex. "🎉 Congratulations! You are now a Premium User.")
+PREMIUM_EXPIRE_TEXT = Message when premium expires
+( ex. "⚠️ Your Premium Plan has expired. Please renew to continue.")
+PLANS_TEXT = Custom message for /plans command
+( ex. "💎 Available Plans:\n\n7 Days - ₹49\n30 Days - ₹149\nLifetime - ₹499")
+PREMIUM_BYPASS_VERIFY = Default: True
+(If True → Premium users don’t need token verification)
 ### Fillings
+
 #### START_MESSAGE | FORCE_SUB_MESSAGE
 
 * `{first}` - User first name
@@ -139,6 +149,26 @@ stats - checking your bot uptime
 
 * `{uptime}` - Bot Uptime
 
+ 
+📁 Example .env File 
+
+TG_BOT_TOKEN=
+APP_ID=
+API_HASH=
+OWNER_ID=
+CHANNEL_ID=
+DATABASE_URL=
+DATABASE_NAME=
+
+IS_VERIFY=True
+SHORTLINK_URL=
+SHORTLINK_API=
+VERIFY_EXPIRE=86400
+FREE_TIME=10800
+
+FORCE_SUB_CHANNEL=0
+AUTO_DELETE_TIME=60
+PROTECT_CONTENT=False
 
 💬 Support
 Join Our [Telegram Group](https://www.telegram.dog/botsupdatesgroup) For Support/Assistance And Our [Channel](https://www.telegram.dog/teamjb1) For Updates.   
