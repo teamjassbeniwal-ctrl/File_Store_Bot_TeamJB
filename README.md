@@ -120,7 +120,7 @@ stats - checking your bot uptime
 * `SHORTLINK_API` = Your shortner API (ex. "PUIAQBIFrydvLhIzAOeGV8yZppu2")
 * `VERIFY_EXPIRE` = ( ex. 86400)) # Add time in seconds
 
-###👑 Premium Variables
+### 👑 Premium Variables
 Premium System Variables
 PREMIUM_TEXT = Custom message sent when user successfully gets premium
 ( ex. "🎉 Congratulations! You are now a Premium User.")
@@ -130,6 +130,7 @@ PLANS_TEXT = Custom message for /plans command
 ( ex. "💎 Available Plans:\n\n7 Days - ₹49\n30 Days - ₹149\nLifetime - ₹499")
 PREMIUM_BYPASS_VERIFY = Default: True
 (If True → Premium users don’t need token verification)
+
 ### Fillings
 
 #### START_MESSAGE | FORCE_SUB_MESSAGE
