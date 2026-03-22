@@ -1,17 +1,22 @@
 # 📁 File Store Bot
 
-<div align="center" style="border: 2px solid #e94560; border-radius: 10px;">
-  <img src="https://yt3.googleusercontent.com/p9g9i5N55WgCn1mFFjl8iut4BOd0O4RRjn7WB_Silj9JmJ42tE-yhdZ0oR_7m-F4kGHT22Br=s176-c-k-c0x00ffffff-no-rj" alt="Bot" width="150" style="border-radius: 10px;">
-</div>
+<div align="center">
 
-<p align="center">
-  <a href="https://t.me/teamjb1">
-    <img src="https://img.shields.io/badge/Team%20%F0%9D%95%8F%20JB-Channel-blue?style=for-the-badge&logo=telegram" alt="Team JB Official Channel">
-  </a>
-  <a href="https://t.me/botsupdatesgroup">
-    <img src="https://img.shields.io/badge/botsupdatesgroup%20%F0%9D%95%8F%20Group-blue?style=for-the-badge&logo=telegram" alt="Team JB Official Group">
-  </a>
-</p>
+<img src="https://yt3.googleusercontent.com/p9g9i5N55WgCn1mFFjl8iut4BOd0O4RRjn7WB_Silj9JmJ42tE-yhdZ0oR_7m-F4kGHT22Br=s176-c-k-c0x00ffffff-no-rj" 
+width="150" 
+style="border-radius: 12px;" />
+
+<br><br>
+
+<a href="https://t.me/teamjb1">
+  <img src="https://img.shields.io/badge/TEAM--JB%20CHANNEL-blue?style=for-the-badge&logo=telegram" />
+</a>
+
+<a href="https://t.me/botsupdatesgroup">
+  <img src="https://img.shields.io/badge/UPDATE%20GROUP-blue?style=for-the-badge&logo=telegram" />
+</a>
+
+</div>
 
 Telegram Bot to store posts and documents accessible via special links.
 
@@ -176,14 +181,19 @@ Report Bugs, Give Feature Requests There..
 Thanks to Dan for his awesome library. [Libary](https://github.com/pyrogram/pyrogram)
 Our support group members.
 
-📝 License
-GNU GPLv3 [![GNU GPLv3 Image](https://www.gnu.org/graphics/gplv3-127x51.png)](http://www.gnu.org/licenses/gpl-3.0.en.html) 
 
-[FILE-SHARING-BOT](https://github.com/teamjassbeniwal-ctrl/File_Store_Bot_TeamJB/) is Free Software: You can use, study share and improve it at your
-will. Specifically you can redistribute and/or modify it under the terms of the
-[GNU General Public License](https://www.gnu.org/licenses/gpl.html) as
-published by the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version. 
+## 📜 License
+
+This project is licensed under the **GNU General Public License v3.0 (GPL-3.0)**.
+
+You are free to:
+- Use
+- Modify
+- Distribute
+
+❗ But you MUST:
+- Share source code
+- Keep same license (GPL). 
 
 
    **Star this Repo if you Liked it ⭐⭐⭐**
