@@ -30,8 +30,8 @@ DB_NAME = os.environ.get("DATABASE_NAME", "Cluster0")
 # 
 FREE_TIME = 3 * 60 * 60   # 3 hours
 
-SHORTLINK_URL = os.environ.get("SHORTLINK_URL", "arolinks.com")
-SHORTLINK_API = os.environ.get("SHORTLINK_API", "8d6b2153682ca17a4f89e662199d6b5917893bf0")
+SHORTLINK_URL = os.environ.get("SHORTLINK_URL", "")
+SHORTLINK_API = os.environ.get("SHORTLINK_API", "")
 VERIFY_EXPIRE = int(os.environ.get('VERIFY_EXPIRE', 28800)) # Add time in seconds
 IS_VERIFY = os.environ.get("IS_VERIFY", "True")
 TUT_VID = os.environ.get("TUT_VID", "") # shareus ka tut_vid he 
