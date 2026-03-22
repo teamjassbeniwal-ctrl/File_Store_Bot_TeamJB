@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="https://yt3.googleusercontent.com/p9g9i5N55WgCn1mFFjl8iut4BOd0O4RRjn7WB_Silj9JmJ42tE-yhdZ0oR_7m-F4kGHT22Br=s176-c-k-c0x00ffffff-no-rj" 
+<img src="https://i.ibb.co/PsqxZh2d/IMG-20251213-214014-515.jpg" 
 width="150" 
 style="border-radius: 12px;" />
 
