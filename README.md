@@ -3,7 +3,7 @@
 <div align="center">
 
 <img src="https://i.ibb.co/PsqxZh2d/IMG-20251213-214014-515.jpg" 
-width="150" 
+width="250" 
 style="border-radius: 12px;" />
 
 <br><br>
@@ -151,25 +151,6 @@ stats - checking your bot uptime
 * `{uptime}` - Bot Uptime
 
  
-📁 Example .env File 
-
-TG_BOT_TOKEN=
-APP_ID=
-API_HASH=
-OWNER_ID=
-CHANNEL_ID=
-DATABASE_URL=
-DATABASE_NAME=
-
-IS_VERIFY=True
-SHORTLINK_URL=
-SHORTLINK_API=
-VERIFY_EXPIRE=86400
-FREE_TIME=10800
-
-FORCE_SUB_CHANNEL=0
-AUTO_DELETE_TIME=60
-PROTECT_CONTENT=False
 
 💬 Support
 Join Our [Telegram Group](https://www.telegram.dog/botsupdatesgroup) For Support/Assistance And Our [Channel](https://www.telegram.dog/teamjb1) For Updates.   
